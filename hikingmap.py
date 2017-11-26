@@ -35,6 +35,7 @@ class Parameters:
         # default parameters
         self.dpi = 200
         self.scale = 50000
+        self.scale_factor = 1.0
         self.pagewidth = 20.0
         self.pageheight = 28.7
         self.pageoverlap = 1.0 # in cm
@@ -56,6 +57,8 @@ class Parameters:
                                                 "(default " + str(self.dpi) + ")\n"
               "  -s --scale          Scale denominator " +
                                                 "(default " + str(self.scale) + ")\n"
+              "  -S --scale-factor   Scale factor " +
+                                                "(default " + str(self.scale_factor) + ")\n"
               "     --pagewidth      Paper width minus margin in cm " +
                                                 "(default " + str(self.pagewidth) + ")\n"
               "     --pageheight     Paper height minus margin in cm " +
@@ -79,9 +82,10 @@ class Parameters:
     # returns True if parameters could be parsed successfully
     def parse_commandline(self):
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:s:m:w:b:f:vh", [
+            opts, args = getopt.getopt(sys.argv[1:], "d:s:S:m:w:b:f:vh", [
                 "dpi=",
                 "scale=",
+                "scale-factor=",
                 "pagewidth=",
                 "pageheight=",
                 "pageoverlap=",
@@ -107,6 +111,8 @@ class Parameters:
                 self.dpi = int(arg)
             elif opt in ("-s", "--scale"):
                 self.scale = int(arg)
+            elif opt in ("-S", "--scale-factor"):
+                self.scale_factor = float(arg)
             elif opt in ("--pagewidth"):
                 self.pagewidth = float(arg)
             elif opt in ("--pageheight"):
@@ -134,6 +140,7 @@ class Parameters:
             print("Parameters:")
             print("dpi = " + str(self.dpi))
             print("scale = " + str(self.scale))
+            print("scale factor = " + str(self.scale_factor))
             print("pagewidth = " + str(self.pagewidth))
             print("pageheight = " + str(self.pageheight))
             print("pageoverlap = " + str(self.pageoverlap))
@@ -602,13 +609,10 @@ class Page(Area):
         #pdfprint.render_scale(m, ctx=context)
         #pdfprint.render_legend(m, ctx=context, attribution="(c) OpenStreetMap contributors")
         #pdfprint.render_map(m, filename)
-        
-        #im = mapnik.Image(m.width, m.height)
-        #mapnik.render(m, im)
-        #im.save(filename, parameters.output_format)
-        
-        mapnik.render_to_file(m, filename, parameters.output_format)
 
+        mapnik.render_to_file(m, filename,
+                              parameters.output_format,
+                              parameters.scale_factor)
 
     def render(self, parameters, tempwaypointfile, filename):
         if not parameters.extrender:
