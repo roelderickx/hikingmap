@@ -1,8 +1,11 @@
 # Hikingmap
+
 A python script to render GPX track(s) on a minimum amount of pages. For installation instructions and additional requirements please visit [the hikingmap web page](https://roel.derickx.be/hikingmap/).
 
 ## Usage
+
 Parameters:
+
 | Parameter | Description
 | --------- | -----------
 | `-d, --dpi` | Amount of detail to render in dots per inch. This value is unrelated to the setting on your printer, a higher value will simply result in smaller icons, thinner roads and unreadable text
