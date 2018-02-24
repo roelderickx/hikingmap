@@ -216,11 +216,15 @@ class Coordinate:
         return str(round(self.lon, 6)) + "," + str(round(self.lat, 6))
 
 
-    # outputfile should be opened for writing
-    def write_as_waypoint(self, outputfile, name):
-        outputfile.write("<wpt lat=\"" + str(self.lat) + "\" lon=\"" + str(self.lon) + "\">\n")
-        outputfile.write("    <name>" + name + "</name>\n")
-        outputfile.write("</wpt>\n")
+    def append_to_xml_node(self, gpxnode, name):
+        wayptnode = gpxnode.ownerDocument.createElement("wpt")
+        wayptnode.setAttribute("lat", str(self.lat))
+        wayptnode.setAttribute("lon", str(self.lon))
+        wayptnamenode = gpxnode.ownerDocument.createElement("name")
+        wayptnametext = gpxnode.ownerDocument.createTextNode(name)
+        wayptnamenode.appendChild(wayptnametext)
+        wayptnode.appendChild(wayptnamenode)
+        gpxnode.appendChild(wayptnode)
 
 
 class Tracks:
@@ -284,10 +288,10 @@ class Tracks:
 
     # calculates all waypoints between coord1 and coord2
     # returns cumulative distance at coord2
-    def __write_wpt(self, outputfile, coord1, coord2, cumul_dist_at_coord1, waypt_distance):
+    def __write_wpt(self, gpxnode, coord1, coord2, cumul_dist_at_coord1, waypt_distance):
         if coord1.equals(coord2):
             if cumul_dist_at_coord1 == 0:
-                coord1.write_as_waypoint(outputfile, "0")
+                coord1.append_to_xml_node(gpxnode, "0")
             return cumul_dist_at_coord1
         else:
             b = coord1.bearing(coord2)
@@ -311,17 +315,17 @@ class Tracks:
                                                  math.cos(b)),
                                        False)
 
-                    waypt.write_as_waypoint(outputfile, str(km))
+                    waypt.append_to_xml_node(gpxnode, str(km))
 
             return cumul_dist_at_coord2
 
 
-    def __generate_waypoints_track(self, outputfile, track, waypt_distance):
+    def __generate_waypoints_track(self, gpxnode, track, waypt_distance):
         cumulDistance = 0
         prev_coord = Coordinate(track[0].lon, track[0].lat)
         for trackpoint in track[0:]:
             coord = Coordinate(trackpoint.lon, trackpoint.lat)
-            cumulDistance = self.__write_wpt(outputfile, prev_coord, coord, \
+            cumulDistance = self.__write_wpt(gpxnode, prev_coord, coord, \
                                              cumulDistance, waypt_distance)
             prev_coord = coord
 
@@ -329,26 +333,28 @@ class Tracks:
 
 
     def calculate_waypoints(self, waypt_distance):
-        (fd, self.tempwaypointfile) = tempfile.mkstemp(prefix = "hikingmap_temp_waypoints", \
-                                                       suffix = ".gpx")
-        f = os.fdopen(fd, 'w')
-
-        f.write("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\" ?>\n")
-        f.write("<gpx\n")
-        f.write(" version=\"1.0\"\n")
-        f.write(" creator=\"hikingmap\"\n")
-        f.write(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n")
-        f.write(" xmlns=\"http://www.topografix.com/GPX/1/0\"\n")
-        f.write(" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd\">\n")
-
+        wayptdoc = minidom.Document()
+        gpxnode = wayptdoc.createElement('gpx')
+        gpxnode.setAttribute("version", "1.0")
+        gpxnode.setAttribute("creator", "hikingmap")
+        gpxnode.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        gpxnode.setAttribute("xmlns", "http://www.topografix.com/GPX/1/0")
+        gpxnode.setAttribute("xsi:schemaLocation", \
+              "http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd")
+        
         index = 0
         for track in self.tracks:
             print("Generating waypoints for track " + str(index) + ": " + \
                   track[0].to_string() + " - " + track[-1].to_string())
-            self.__generate_waypoints_track(f, track, waypt_distance)
+            self.__generate_waypoints_track(gpxnode, track, waypt_distance)
             index += 1
-
-        f.write("</gpx>\n")
+        
+        wayptdoc.appendChild(gpxnode)
+        
+        (fd, self.tempwaypointfile) = tempfile.mkstemp(prefix = "hikingmap_temp_waypoints", \
+                                                       suffix = ".gpx")
+        f = os.fdopen(fd, 'w')
+        wayptdoc.writexml(f, "", "  ", "\n", "ISO-8859-1")
         f.close
 
 
