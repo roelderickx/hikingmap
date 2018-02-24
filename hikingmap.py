@@ -44,6 +44,7 @@ class Parameters:
         self.output_basename = "detail."
         self.output_format = "pdf"
         self.waypt_distance = 1
+        self.page_order = "naturalorder"
         self.gpxfiles = [ ]
         self.extrender = ""
         self.extrenderparams = ""
@@ -71,6 +72,9 @@ class Parameters:
                                                 "(default " + self.hikingmapstyle + ")\n"
               "  -w --waypoints      Add cumulative length each N km " +
                                                 "(default " + str(self.waypt_distance) + ")\n"
+              "  -o --page-order     Order in which pages are generated [naturalorder, " +
+                                                "rectoverso, book] " +
+                                                "(default " + str(self.pageorder) + ")\n"
               "  -b --basename       Output basename " +
                                                 "(default " + self.output_basename + ")\n"
               "  -f --format         Output format, see mapnik documentation for\n"
@@ -82,7 +86,7 @@ class Parameters:
     # returns True if parameters could be parsed successfully
     def parse_commandline(self):
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:s:S:m:w:b:f:vh", [
+            opts, args = getopt.getopt(sys.argv[1:], "d:s:S:m:w:o:b:f:vh", [
                 "dpi=",
                 "scale=",
                 "scale-factor=",
@@ -92,6 +96,7 @@ class Parameters:
                 "mapstyle=",
                 "hikingmapstyle=",
                 "waypoints=",
+                "page-order=",
                 "basename=",
                 "format=",
                 "extrender=",
@@ -125,6 +130,8 @@ class Parameters:
                 self.hikingmapstyle = str(arg)
             elif opt in ("-w", "--waypoints"):
                 self.waypt_distance = int(arg)
+            elif opt in ("-o", "--page-order"):
+                self.page_order = str(arg)
             elif opt in ("-b", "--basename"):
                 self.output_basename = str(arg)
             elif opt in ("-f", "--format"):
@@ -147,6 +154,7 @@ class Parameters:
             print("mapstyle = " + self.mapstyle)
             print("hikingmapstyle = " + self.hikingmapstyle)
             print("waypt_distance = " + str(self.waypt_distance))
+            print("page_order = " + self.page_order)
             print("output_basename = " + self.output_basename)
             print("output_format = " + self.output_format)
             print("gpxfiles = " + ', '.join(self.gpxfiles))
@@ -397,8 +405,9 @@ class Area(object):
 
 
 class Page(Area):
-    def __init__(self, parameters):
+    def __init__(self, parameters, pageindex):
         super(Page, self).__init__(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
+        self.pageindex = pageindex
         self.scale = parameters.scale
         self.pagewidth = parameters.pagewidth
         self.pageheight = parameters.pageheight
@@ -432,6 +441,10 @@ class Page(Area):
             return max(self.pagewidth, self.pageheight)
 
 
+    def get_page_index(self):
+        return self.pageindex
+    
+    
     def set_area(self, area):
         self.minlon = area.minlon
         self.minlat = area.minlat
@@ -654,7 +667,8 @@ class TrackFinder:
         self.pages = list()
         self.renderedareas = list()
         self.parameters = parameters
-        self.currentpage = Page(parameters)
+        self.currentpageindex = 1
+        self.currentpage = None #Page(parameters, self.currentpageindex)
         self.firstpointaccepted = False
 
         for track in tracks:
@@ -662,6 +676,8 @@ class TrackFinder:
             for coord in track:
                 prev_coord = self.__add_point(prev_coord, coord)
             self.__flush()
+        
+        self.__reorder_pages()
 
 
     def __add_point(self, prev_coord, coord):
@@ -687,8 +703,9 @@ class TrackFinder:
 
 
     def __add_first_point(self, coord):
-        self.currentpage = Page(self.parameters)
+        self.currentpage = Page(self.parameters, self.currentpageindex)
         self.currentpage.initialize_first_point(coord)
+        self.currentpageindex += 1
         self.firstpointaccepted = True
         return coord
 
@@ -711,6 +728,31 @@ class TrackFinder:
         return new_coord
 
 
+    def __reorder_pages(self):
+        if self.parameters.page_order == "rectoverso":
+            oldindex = math.floor(len(self.pages) / 2)
+            newindex = 1
+            while (oldindex < len(self.pages)):
+                self.pages.insert(newindex, self.pages.pop(oldindex))
+                oldindex += 1
+                newindex += 2
+            
+            print("Page order is rectoverso, new order =", end="")
+            for page in self.pages:
+                print(" " + str(page.get_page_index()), end="")
+            print()
+        elif self.parameters.page_order == "book":
+            ...
+            
+            print("*** NOT YET IMPLEMENTED *** Page order is book, new order =", end="")
+            for page in self.pages:
+                print(" " + str(page.get_page_index()), end="")
+            print()
+        else:
+            print("Page order is naturalorder")
+            pass
+
+
 
 # MAIN
 
@@ -718,9 +760,9 @@ if not hasattr(mapnik, 'mapnik_version') or mapnik.mapnik_version() < 600:
     raise SystemExit('This script requires Mapnik >= 0.6.0)')
 
 # enable to search other paths for fonts
-# mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
-# mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
-# mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
+mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
+mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
+mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
 
 params = Parameters()
 if not params.parse_commandline():
