@@ -72,9 +72,9 @@ class Parameters:
                                                 "(default " + self.hikingmapstyle + ")\n"
               "  -w --waypoints      Add cumulative length each N km " +
                                                 "(default " + str(self.waypt_distance) + ")\n"
-              "  -o --page-order     Order in which pages are generated [naturalorder, " +
-                                                "rectoverso, book] " +
-                                                "(default " + str(self.pageorder) + ")\n"
+              "  -o --page-order     Order in which pages are generated\n" +
+              "                      [naturalorder, rectoverso, book] " +
+                                                "(default " + str(self.page_order) + ")\n" +
               "  -b --basename       Output basename " +
                                                 "(default " + self.output_basename + ")\n"
               "  -f --format         Output format, see mapnik documentation for\n"
@@ -527,11 +527,11 @@ class Page(Area):
         outsidePage = False
         new_coord = coord
         if self.orientation == Orientation.Unknown:
-            # TODO zowel portrait als landscape proberen
-            #      1. indien beide outsidePage == False -> continue
-            #      2. prefereer oplossing zonder outsidePage, pas orientation etc aan
-            #      3. indien beide outsidePage == True, prefereer de oplossing met grootste
-            #         aandeel, en indien dat gelijk is Portrait
+            # TODO try both portrait and landscape
+            #      1. if both outsidePage == False -> continue
+            #      2. prefer solution without outsidePage, adapt orientation etc
+            #      3. if both outsidePage == True, prefer the solution with the greatest
+            #         share, if equal -> portrait
             pass
         else:
             minpagelon = self.minlon
@@ -742,9 +742,20 @@ class TrackFinder:
                 print(" " + str(page.get_page_index()), end="")
             print()
         elif self.parameters.page_order == "book":
-            ...
+            amount_empty_pages = (4 - (len(self.pages) % 4)) % 4
+            for i in range(0, amount_empty_pages):
+                self.pages.append(-1)
+
+            oldindex = len(self.pages) - 1
+            newindex = 1
+            while (newindex < oldindex):
+                self.pages.insert(newindex, self.pages.pop(oldindex))
+                newindex += 2
             
-            print("*** NOT YET IMPLEMENTED *** Page order is book, new order =", end="")
+            # TODO: this page order requires recto-verso printing over the long edge of the
+            # paper, the inner pages should be switched
+            
+            print("Page order is book, new order =", end="")
             for page in self.pages:
                 print(" " + str(page.get_page_index()), end="")
             print()
