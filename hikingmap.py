@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math, getopt, tempfile, mapnik #, mapnik.printing, itertools
+import sys, os, math, getopt, tempfile, itertools, mapnik
 from xml.dom import minidom
 from collections import namedtuple
 
@@ -665,14 +665,12 @@ class Page(Area):
 class TrackFinder:
     def __init__(self, parameters, tracks):
         self.parameters = parameters
+        self.pages = list()
 
-        # TODO: code below works but some parts may not be rendered...
-        '''
-        self.minimumpages = list()
         print("Calculating track order with minimum amount of pages")
-        minpages = -1
+        min_amount_pages = -1
         for trackpermutation in itertools.permutations(tracks):
-            self.pages = list()
+            self.temppages = list()
             self.renderedareas = list()
             self.currentpageindex = 1
             self.currentpage = None #Page(parameters, self.currentpageindex)
@@ -684,22 +682,10 @@ class TrackFinder:
                     prev_coord = self.__add_point(prev_coord, coord)
                 self.__flush()
 
-            if minpages == -1 or len(self.pages) < minpages:
-                minpages = len(self.pages)
-                self.minimumpages = self.pages
-                print("Found track permutation with %d pages" % minpages)
-        '''
-        self.pages = list()
-        self.renderedareas = list()
-        self.currentpageindex = 1
-        self.currentpage = None #Page(parameters, self.currentpageindex)
-        self.firstpointaccepted = False
-
-        for track in tracks:
-            prev_coord = Coordinate(0.0, 0.0)
-            for coord in track:
-                prev_coord = self.__add_point(prev_coord, coord)
-            self.__flush()
+            if min_amount_pages == -1 or len(self.temppages) < min_amount_pages:
+                min_amount_pages = len(self.temppages)
+                self.pages = self.temppages
+                print("Found track permutation with %d pages" % min_amount_pages)
 
         self.__reorder_pages()
 
@@ -716,7 +702,7 @@ class TrackFinder:
     def __flush(self):
         if self.firstpointaccepted:
             self.currentpage.center_map()
-            self.pages.append(self.currentpage)
+            self.temppages.append(self.currentpage)
             self.renderedareas.append(self.currentpage.renderarea)
             self.firstpointaccepted = False
 
@@ -744,7 +730,7 @@ class TrackFinder:
         outsidePage, new_coord = self.currentpage.add_next_point(prev_coord, coord)
         
         if outsidePage:
-            self.pages.append(self.currentpage)
+            self.temppages.append(self.currentpage)
             self.renderedareas.append(self.currentpage.renderarea)
             self.__add_first_point(new_coord)
             self.__add_next_point(new_coord, coord)
@@ -805,9 +791,9 @@ if not hasattr(mapnik, 'mapnik_version') or mapnik.mapnik_version() < 600:
     raise SystemExit('This script requires Mapnik >= 0.6.0)')
 
 # enable to search other paths for fonts
-#mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
-#mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
-#mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
+mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
+mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
+mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
 
 params = Parameters()
 if not params.parse_commandline():
