@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math, getopt, tempfile, mapnik, mapnik.printing
+import sys, os, math, getopt, tempfile, mapnik #, mapnik.printing, itertools
 from xml.dom import minidom
 from collections import namedtuple
 
@@ -363,7 +363,7 @@ class Tracks:
                                                        suffix = ".gpx")
         f = os.fdopen(fd, 'w')
         wayptdoc.writexml(f, "", "  ", "\n", "ISO-8859-1")
-        f.close
+        f.close()
 
 
 class Area(object):
@@ -664,9 +664,33 @@ class Page(Area):
 
 class TrackFinder:
     def __init__(self, parameters, tracks):
+        self.parameters = parameters
+
+        # TODO: code below works but some parts may not be rendered...
+        '''
+        self.minimumpages = list()
+        print("Calculating track order with minimum amount of pages")
+        minpages = -1
+        for trackpermutation in itertools.permutations(tracks):
+            self.pages = list()
+            self.renderedareas = list()
+            self.currentpageindex = 1
+            self.currentpage = None #Page(parameters, self.currentpageindex)
+            self.firstpointaccepted = False
+
+            for track in trackpermutation:
+                prev_coord = Coordinate(0.0, 0.0)
+                for coord in track:
+                    prev_coord = self.__add_point(prev_coord, coord)
+                self.__flush()
+
+            if minpages == -1 or len(self.pages) < minpages:
+                minpages = len(self.pages)
+                self.minimumpages = self.pages
+                print("Found track permutation with %d pages" % minpages)
+        '''
         self.pages = list()
         self.renderedareas = list()
-        self.parameters = parameters
         self.currentpageindex = 1
         self.currentpage = None #Page(parameters, self.currentpageindex)
         self.firstpointaccepted = False
@@ -676,7 +700,7 @@ class TrackFinder:
             for coord in track:
                 prev_coord = self.__add_point(prev_coord, coord)
             self.__flush()
-        
+
         self.__reorder_pages()
 
 
@@ -744,7 +768,7 @@ class TrackFinder:
         elif self.parameters.page_order == "book":
             amount_empty_pages = (4 - (len(self.pages) % 4)) % 4
             for i in range(0, amount_empty_pages):
-                self.pages.append(-1)
+                self.pages.append(None)
 
             oldindex = len(self.pages) - 1
             newindex = 1
@@ -752,13 +776,23 @@ class TrackFinder:
                 self.pages.insert(newindex, self.pages.pop(oldindex))
                 newindex += 2
             
-            # TODO: this page order requires recto-verso printing over the long edge of the
-            # paper, the inner pages should be switched
-            
+            # this page order requires recto-verso printing over the short edge of the
+            # paper
+            oldindex = 0
+            newindex = 1
+            while (oldindex < len(self.pages)):
+                self.pages.insert(newindex, self.pages.pop(oldindex))
+                oldindex += 4
+                newindex += 4
+
             print("Page order is book, new order =", end="")
             for page in self.pages:
-                print(" " + str(page.get_page_index()), end="")
+                if page != None:
+                    print(" " + str(page.get_page_index()), end="")
+                else:
+                    print(" X", end="")
             print()
+            print("WARNING: blank pages are not generated!")
         else:
             print("Page order is naturalorder")
             pass
@@ -787,10 +821,11 @@ trackfinder = TrackFinder(params, tracks.tracks)
 
 index = 1
 for page in trackfinder.pages:
-    print(page.to_string(index))
-    page.render(params, tracks.tempwaypointfile, \
-                params.output_basename + \
-                str(index).zfill(len(str(len(trackfinder.pages)))) + "." + \
-                params.output_format)
+    if page != None:
+        print(page.to_string(index))
+        page.render(params, tracks.tempwaypointfile, \
+                    params.output_basename + \
+                    str(index).zfill(len(str(len(trackfinder.pages)))) + "." + \
+                    params.output_format)
     index += 1
 
