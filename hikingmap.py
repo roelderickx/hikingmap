@@ -805,9 +805,9 @@ if not hasattr(mapnik, 'mapnik_version') or mapnik.mapnik_version() < 600:
     raise SystemExit('This script requires Mapnik >= 0.6.0)')
 
 # enable to search other paths for fonts
-mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
-mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
-mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
+#mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
+#mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
+#mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
 
 params = Parameters()
 if not params.parse_commandline():
