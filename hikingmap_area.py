@@ -2,7 +2,6 @@
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
-#                     Frederik Vincken <fvincken AT gmail>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,8 +20,8 @@ import sys, os, math
 from hikingmap_coordinate import Coordinate
 
 # global constants
-earthRadius = 6371 # km
-inch = 2.54 # cm
+earthCircumference = 40041.44 # km (average, equatorial 40075.017 km / meridional 40007.86 km)
+cmToKmFactor = 100000.0
 
 class Area(object):
     def __init__(self, min_coord, max_coord):
@@ -40,13 +39,22 @@ class Area(object):
 
 
     def _convert_cm_to_degrees_lon(self, lengthcm, scale, latitude):
-        lengthkm = lengthcm / 100000.0 * scale
-        return lengthkm / (111.11 * math.cos(math.radians(latitude)))
+        lengthkm = lengthcm / cmToKmFactor * scale
+        return lengthkm / ((earthCircumference / 360.0) * math.cos(math.radians(latitude)))
 
 
     def _convert_cm_to_degrees_lat(self, lengthcm, scale):
-        lengthkm = lengthcm / 100000.0 * scale
-        return lengthkm / 111.11
+        lengthkm = lengthcm / cmToKmFactor * scale
+        return lengthkm / (earthCircumference / 360.0)
+
+
+    def _convert_degrees_lon_to_cm(self, delta_lon, latitude):
+        return delta_lon * (earthCircumference / 360.0) * \
+                       math.cos(math.radians(latitude)) * cmToKmFactor
+
+
+    def _convert_degrees_lat_to_cm(self, delta_lat):
+        return delta_lat * (earthCircumference / 360.0) * cmToKmFactor
 
 
     def sizelon(self):

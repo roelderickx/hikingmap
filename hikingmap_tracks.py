@@ -59,19 +59,19 @@ class Tracks:
 
                     if existingtrack[-1].equals(track[0]):
                         print("=> connecting after track " + str(foundindex))
-                        newtrack = existingtrack + track
+                        newtrack = existingtrack + track[1:]
                         self.tracks[foundindex] = newtrack
                         foundtrack = True
                         break
                     elif existingtrack[0].equals(track[-1]):
                         print("=> connecting before track " + str(foundindex))
-                        newtrack = track + existingtrack
+                        newtrack = track + existingtrack[1:]
                         self.tracks[foundindex] = newtrack
                         foundtrack = True
                         break
 
                 if not foundtrack:
-                    print("=> new track " + str(foundindex))
+                    print("=> new track " + str(len(self.tracks)))
                     self.tracks.append(track)
 
 

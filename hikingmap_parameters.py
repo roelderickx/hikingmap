@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
-# Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
-#                     Frederik Vincken <fvincken AT gmail>
+# Copyright (C) 2015  Frederik Vincken <fvincken AT gmail>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,8 +35,6 @@ class Parameters:
         self.waypt_distance = 1
         self.page_order = "naturalorder"
         self.gpxfiles = [ ]
-        self.extrender = ""
-        self.extrenderparams = ""
         self.verbose = False
 
 
@@ -91,8 +88,6 @@ class Parameters:
                 "page-order=",
                 "basename=",
                 "format=",
-                "extrender=",
-                "extrenderparams=",
                 "verbose",
                 "help"])
         except getopt.GetoptError:
@@ -130,10 +125,6 @@ class Parameters:
                 self.output_basename = str(arg)
             elif opt in ("-f", "--format"):
                 self.output_format = str(arg)
-            elif opt in ("--extrender"):
-                self.extrender = str(arg)
-            elif opt in ("--extrenderparams"):
-                self.extrenderparams = str(arg)
 
         self.gpxfiles = args
 

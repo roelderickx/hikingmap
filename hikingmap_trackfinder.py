@@ -2,7 +2,6 @@
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
-#                     Frederik Vincken <fvincken AT gmail>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, itertools, tempfile, mapnik
+import sys, os, math, itertools, tempfile, mapnik
 from xml.dom import minidom
 from hikingmap_coordinate import Coordinate
 from hikingmap_area import Area
@@ -30,10 +29,11 @@ class TrackFinder:
         self.tempoverviewfile = ""
         self.pages = list()
 
-        print("Calculating track order with minimum amount of pages")
+        print("Calculating track order permutation resulting in a minimum amount of pages")
+        print("This may take a while, checking %d track permutations" % \
+                        math.factorial(len(tracks.tracks)))
         min_amount_pages = -1
         for trackpermutation in itertools.permutations(tracks.tracks):
-            self.temppages = list()
             self.renderedareas = list()
             self.currentpageindex = 1
             self.currentpage = None #Page(parameters, self.currentpageindex)
@@ -45,11 +45,11 @@ class TrackFinder:
                     prev_coord = self.__add_point(prev_coord, coord)
                 self.__flush()
 
-            if min_amount_pages == -1 or len(self.temppages) < min_amount_pages:
-                min_amount_pages = len(self.temppages)
-                self.pages = self.temppages
+            if min_amount_pages == -1 or len(self.renderedareas) < min_amount_pages:
+                min_amount_pages = len(self.renderedareas)
+                self.pages = self.renderedareas
                 print("Found track permutation with %d pages" % min_amount_pages)
-
+        
         if self.parameters.generate_overview:
             self.__add_page_overview()
         
@@ -75,8 +75,7 @@ class TrackFinder:
     def __flush(self):
         if self.firstpointaccepted:
             self.currentpage.center_map()
-            self.temppages.append(self.currentpage)
-            self.renderedareas.append(self.currentpage.renderarea)
+            self.renderedareas.append(self.currentpage)
             self.firstpointaccepted = False
 
 
@@ -94,21 +93,18 @@ class TrackFinder:
 
 
     def __add_next_point(self, prev_coord, coord):
-        ''' TODO:
-        self.currentpage.add_next_point(coord)
-        if self.currentpage.is_outside_page():
-            new_coord = self.currentpage.get_border_intersection(prev_coord, coord)
-            ...
-        '''
-        outsidePage, new_coord = self.currentpage.add_next_point(prev_coord, coord)
+        outside_page = self.currentpage.add_next_point(prev_coord, coord)
         
-        if outsidePage:
-            self.temppages.append(self.currentpage)
-            self.renderedareas.append(self.currentpage.renderarea)
-            self.__add_first_point(new_coord)
-            self.__add_next_point(new_coord, coord)
+        if outside_page:
+            border_coord = self.currentpage.calc_border_point(prev_coord, coord)
+            self.currentpage.center_map()
+            self.renderedareas.append(self.currentpage)
+            self.__add_first_point(border_coord)
+            self.__add_next_point(border_coord, coord)
         
-        return new_coord
+            return border_coord
+        else:
+            return coord
 
 
     def __add_page_overview(self):
@@ -121,11 +117,11 @@ class TrackFinder:
         gpxnode.setAttribute("xsi:schemaLocation", \
               "http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd")
         
-        minlon = -1
-        minlat = -1
-        maxlon = -1
-        maxlat = -1
+        overviewpage = Page(self.parameters, 0)
+
         for page in self.pages:
+            overviewpage.add_page_to_overview(page)
+
             tracknode = gpxnode.ownerDocument.createElement("trk")
             tracksegnode = gpxnode.ownerDocument.createElement("trkseg")
             for i in range(0, 5):
@@ -143,15 +139,7 @@ class TrackFinder:
                 tracksegnode.appendChild(trackptnode)
             tracknode.appendChild(tracksegnode)
             gpxnode.appendChild(tracknode)
-            if minlon == -1 or page.minlon < minlon:
-                minlon = page.minlon
-            if maxlon == -1 or page.maxlon > maxlon:
-                maxlon = page.maxlon
-            if minlat == -1 or page.minlat < minlat:
-                minlat = page.minlat
-            if maxlat == -1 or page.maxlat > maxlat:
-                maxlat = page.maxlat
-        
+                
         overviewdoc.appendChild(gpxnode)
         
         (fd, self.tempoverviewfile) = tempfile.mkstemp(prefix = "hikingmap_temp_overview", \
@@ -160,16 +148,7 @@ class TrackFinder:
         overviewdoc.writexml(f, "", "  ", "\n", "ISO-8859-1")
         f.close()
         
-        overviewpage = Page(self.parameters, 0)
-        overviewpage.set_area(Area(Coordinate(minlon, minlat), \
-                                   Coordinate(maxlon, maxlat)))
-        overviewpage.add_overlap_as_margin()
-        
-        if maxlon - minlon < maxlat - minlat:
-            overviewpage.set_orientation(Page.orientation_portrait)
-        else:
-            overviewpage.set_orientation(Page.orientation_landscape)
-
+        overviewpage.center_map()
         self.pages.insert(0, overviewpage)
 
 
