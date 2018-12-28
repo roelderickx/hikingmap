@@ -38,7 +38,7 @@ if not params.parse_commandline():
 
 tracks = Tracks(params.gpxfiles)
 if params.waypt_distance > 0:
-    tracks.calculate_waypoints(params.waypt_distance)
+    tracks.calculate_waypoints(params.waypt_distance, params.length_unit)
 
 trackfinder = TrackFinder(params, tracks)
 trackfinder.render()

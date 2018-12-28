@@ -33,6 +33,7 @@ class Parameters:
         self.output_format = "pdf"
         self.generate_overview = False
         self.waypt_distance = 1
+        self.length_unit = "km"
         self.page_order = "naturalorder"
         self.gpxfiles = [ ]
         self.verbose = False
@@ -41,29 +42,32 @@ class Parameters:
     def __usage(self):
         print("Usage: " + sys.argv[0] + " [OPTION]... TRACK...\n"
               "Render maps based on given gpx TRACK(s)\n\n"
-              "  -d --dpi            Amount of detail to render " +
+              "  -d --dpi            Amount of detail to render "
                                                 "(default " + str(self.dpi) + ")\n"
-              "  -s --scale          Scale denominator " +
+              "  -s --scale          Scale denominator "
                                                 "(default " + str(self.scale) + ")\n"
-              "  -S --scale-factor   Scale factor " +
+              "  -S --scale-factor   Scale factor "
                                                 "(default " + str(self.scale_factor) + ")\n"
-              "     --pagewidth      Paper width minus margin in cm " +
+              "     --pagewidth      Paper width minus margin in cm "
                                                 "(default " + str(self.pagewidth) + ")\n"
-              "     --pageheight     Paper height minus margin in cm " +
+              "     --pageheight     Paper height minus margin in cm "
                                                 "(default " + str(self.pageheight) + ")\n"
-              "     --pageoverlap    Page overlap in cm " +
+              "     --pageoverlap    Page overlap in cm "
                                                 "(default " + str(self.pageoverlap) + ")\n"
-              "  -m --mapstyle       Mapnik stylesheet file " +
+              "  -m --mapstyle       Mapnik stylesheet file "
                                                 "(default " + self.mapstyle + ")\n"
-              "     --hikingmapstyle Hikingmap stylesheet file " +
+              "     --hikingmapstyle Hikingmap stylesheet file "
                                                 "(default " + self.hikingmapstyle + ")\n"
               "     --overview       Generate overview map\n"
-              "  -w --waypoints      Add cumulative length each N km " +
+              "  -w --waypoints      Add cumulative length each N km or mile "
                                                 "(default " + str(self.waypt_distance) + ")\n"
-              "  -o --page-order     Order in which pages are generated\n" +
-              "                      [naturalorder, rectoverso, book] " +
-                                                "(default " + str(self.page_order) + ")\n" +
-              "  -b --basename       Output basename " +
+              "  -u --unit           Length unit in which the value of the waypoints\n"
+              "                      parameter is expressed [km, mi] "
+                                                "(default " + str(self.length_unit) + ")\n"
+              "  -o --page-order     Order in which pages are generated\n"
+              "                      [naturalorder, rectoverso, book] "
+                                                "(default " + str(self.page_order) + ")\n"
+              "  -b --basename       Output basename "
                                                 "(default " + self.output_basename + ")\n"
               "  -f --format         Output format, see mapnik documentation for\n"
               "                      possible values (default " + self.output_format + ")\n"
@@ -74,7 +78,7 @@ class Parameters:
     # returns True if parameters could be parsed successfully
     def parse_commandline(self):
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:s:S:m:w:o:b:f:vh", [
+            opts, args = getopt.getopt(sys.argv[1:], "d:s:S:m:w:u:o:b:f:vh", [
                 "dpi=",
                 "scale=",
                 "scale-factor=",
@@ -85,6 +89,7 @@ class Parameters:
                 "hikingmapstyle=",
                 "overview",
                 "waypoints=",
+                "unit=",
                 "page-order=",
                 "basename=",
                 "format=",
@@ -119,6 +124,11 @@ class Parameters:
                 self.generate_overview = True
             elif opt in ("-w", "--waypoints"):
                 self.waypt_distance = int(arg)
+            elif opt in ("-u", "--unit"):
+                if arg == "mi":
+                    self.length_unit = arg
+                else: # default km
+                    self.length_unit = "km"
             elif opt in ("-o", "--page-order"):
                 self.page_order = str(arg)
             elif opt in ("-b", "--basename"):
@@ -140,6 +150,7 @@ class Parameters:
             print("hikingmapstyle = " + self.hikingmapstyle)
             print("overview = " + str(self.generate_overview))
             print("waypt_distance = " + str(self.waypt_distance))
+            print("length_unit = " + self.length_unit)
             print("page_order = " + self.page_order)
             print("output_basename = " + self.output_basename)
             print("output_format = " + self.output_format)

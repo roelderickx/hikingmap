@@ -19,7 +19,7 @@
 
 import sys, os, tempfile, math
 from xml.dom import minidom
-from hikingmap_coordinate import earthRadius, Coordinate
+from hikingmap_coordinate import Coordinate
 
 class Tracks:
     def __init__(self, gpxfiles):
@@ -84,51 +84,37 @@ class Tracks:
 
     # calculates all waypoints between coord1 and coord2
     # returns cumulative distance at coord2
-    def __write_wpt(self, gpxnode, coord1, coord2, cumul_dist_at_coord1, waypt_distance):
+    def __write_wpt(self, gpxnode, coord1, coord2, cumul_dist_at_coord1, \
+                    waypt_distance, length_unit):
         if coord1.equals(coord2):
             if cumul_dist_at_coord1 == 0:
                 coord1.append_to_xml_node(gpxnode, "0")
             return cumul_dist_at_coord1
         else:
-            b = coord1.bearing(coord2)
-            cumul_dist_at_coord2 = cumul_dist_at_coord1 + coord1.distance_haversine(coord2)
-            for km in range(int(cumul_dist_at_coord1) + 1, int(cumul_dist_at_coord2) + 1):
-                if km % waypt_distance == 0:
-                    d = km - cumul_dist_at_coord1
-                    waypt = Coordinate(#lon
-                                       coord1.lon_radians + \
-                                       math.atan2(math.sin(b) * \
-                                                  math.sin(d/earthRadius) * \
-                                                  math.cos(coord1.lat_radians), \
-                                                  math.cos(d/earthRadius) - \
-                                                  math.sin(coord1.lat_radians) * \
-                                                  math.sin(coord2.lat_radians)), \
-                                       #lat
-                                       math.asin(math.sin(coord1.lat_radians) * \
-                                                 math.cos(d/earthRadius) + \
-                                                 math.cos(coord1.lat_radians) * \
-                                                 math.sin(d/earthRadius) * \
-                                                 math.cos(b)),
-                                       False)
-
-                    waypt.append_to_xml_node(gpxnode, str(km))
+            cumul_dist_at_coord2 = \
+                cumul_dist_at_coord1 + coord1.distance_haversine(coord2, length_unit)
+            for dist in range(int(cumul_dist_at_coord1) + 1, int(cumul_dist_at_coord2) + 1):
+                if dist % waypt_distance == 0:
+                    d = dist - cumul_dist_at_coord1
+                    waypt = coord1.calc_waypoint_on_line(coord2, d, length_unit)
+                    waypt.append_to_xml_node(gpxnode, str(dist))
 
             return cumul_dist_at_coord2
 
 
-    def __generate_waypoints_track(self, gpxnode, track, waypt_distance):
+    def __generate_waypoints_track(self, gpxnode, track, waypt_distance, length_unit):
         cumulDistance = 0
         prev_coord = Coordinate(track[0].lon, track[0].lat)
         for trackpoint in track[0:]:
             coord = Coordinate(trackpoint.lon, trackpoint.lat)
             cumulDistance = self.__write_wpt(gpxnode, prev_coord, coord, \
-                                             cumulDistance, waypt_distance)
+                                             cumulDistance, waypt_distance, length_unit)
             prev_coord = coord
 
-        print("Total track distance: " + str(round(cumulDistance, 2)) + " km")
+        print("Total track distance: %.2f %s" % (cumulDistance, length_unit))
 
 
-    def calculate_waypoints(self, waypt_distance):
+    def calculate_waypoints(self, waypt_distance, length_unit):
         wayptdoc = minidom.Document()
         gpxnode = wayptdoc.createElement('gpx')
         gpxnode.setAttribute("version", "1.0")
@@ -142,7 +128,7 @@ class Tracks:
         for track in self.tracks:
             print("Generating waypoints for track " + str(index) + ": " + \
                   track[0].to_string() + " - " + track[-1].to_string())
-            self.__generate_waypoints_track(gpxnode, track, waypt_distance)
+            self.__generate_waypoints_track(gpxnode, track, waypt_distance, length_unit)
             index += 1
         
         wayptdoc.appendChild(gpxnode)

@@ -17,8 +17,9 @@ Parameters:
 | `-m, --mapstyle` | The filename of the mapnik stylesheet
 | `--hikingmapstyle` | The filename of the hikingmap stylesheet. This stylesheet contains the styles to draw the GPX track and waypoints.
 | `--overview` | Generate overview map
-| `-w, --waypoints` | If this parameter is given the cumulative distance from the origin will be rendered each N kilometers.
-| `-o, --page-order` | Order in which pages are generated (naturalorder, rectoverso, book) (default naturalorder)
+| `-w, --waypoints` | If this parameter is given the cumulative distance from the origin will be rendered each N kilometers or miles.
+| `-u, --unit` | Length unit in which the value of the waypoints parameter is expressed. Possible values are km or mi (default km).
+| `-o, --page-order` | Order in which pages are generated. Possible values are naturalorder, rectoverso or book (default naturalorder).
 | `-b, --basename` | Output filename base. All output file names will start with this parameter, followed by a sequence number and a file extension depending on the specified format.
 | `-f, --format` | Output format. See the [mapnik documentation](http://mapnik.org/docs/v2.2.0/api/python/mapnik._mapnik-module.html#render_to_file) for possible values
 | `-v, --verbose` | Display extra information while processing.

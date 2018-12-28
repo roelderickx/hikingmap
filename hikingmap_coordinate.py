@@ -19,9 +19,6 @@
 import sys, math
 from xml.dom import minidom
 
-# global constants
-earthRadius = 6371 # km
-
 class Coordinate:
     # lon and lat are coordinates, by default in degrees
     def __init__(self, lon, lat, isDegrees = True):
@@ -64,8 +61,15 @@ class Coordinate:
         return math.atan2(y, x)
 
 
+    def __get_earth_radius(self, length_unit):
+        if length_unit == "mi":
+            return 3959
+        else: # default to km
+            return 6371
+
+
     # calculate distance in km between self and coord
-    def distance_haversine(self, coord):
+    def distance_haversine(self, coord, length_unit):
         dLat = coord.lat_radians - self.lat_radians
         dLon = coord.lon_radians - self.lon_radians
 
@@ -73,7 +77,30 @@ class Coordinate:
             math.sin(dLon/2) * math.sin(dLon/2) * \
             math.cos(self.lat_radians) * math.cos(coord.lat_radians)
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-        return earthRadius * c
+
+        return self.__get_earth_radius(length_unit) * c
+
+
+    # returns the coordinate of the point which is on a given distance
+    # from self in the direction of dest_coord
+    def calc_waypoint_on_line(self, dest_coord, distance, length_unit):
+        b = self.bearing(dest_coord)
+        earth_radius = self.__get_earth_radius(length_unit)
+        return Coordinate(#lon
+                          self.lon_radians + \
+                          math.atan2(math.sin(b) * \
+                                     math.sin(distance/earth_radius) * \
+                                     math.cos(self.lat_radians), \
+                                     math.cos(distance/earth_radius) - \
+                                     math.sin(self.lat_radians) * \
+                                     math.sin(dest_coord.lat_radians)), \
+                          #lat
+                          math.asin(math.sin(self.lat_radians) * \
+                                    math.cos(distance/earth_radius) + \
+                                    math.cos(self.lat_radians) * \
+                                    math.sin(distance/earth_radius) * \
+                                    math.cos(b)),
+                          False)
 
 
     def to_string(self):
