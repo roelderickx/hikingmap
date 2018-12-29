@@ -1,0 +1,349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title>Hikingmap</title>
+    <link rel="stylesheet" type="text/css" href="hikingmap.css" />
+</head>
+<body>
+    <div class="maincontent">
+    <h1>Hikingmap</h1>
+
+    <h2>Introduction</h2>
+    This document describes how to render maps using OpenStreetMap data. The script takes one or more GPS tracks as input and will try to render the complete track on a minimum of pages, choosing between portrait and landscape on the fly. Because its intended use is for outdoor activities, elevation lines can be rendered as well.
+    
+    <h2>Disclaimer</h2>
+The scripts in this document are written and verified to work in a Linux environment. There is no reason it shouldn't work on Windows, Mac OS or other operating systems, but it might require additional steps or a slightly different approach. If you have any questions or feedback, you are welcome to contact me on roel.derickx --at-- gmail.
+
+    <h2 id="toc">Table of contents</h2>
+    <ol class="toc">
+    <li class="toc"><a class="toc" href="#prereq">Prerequisites</a></li>
+    <li class="toc"><a class="toc" href="#database">Setting up the database</a>
+        <ol class="toc">
+        <li class="toc"><a class="toc" href="#databaseprep">Preparing the database</a></li>
+        <li class="toc"><a class="toc" href="#databaseload">Loading data in the database</a></li>
+        </ol>
+    </li>
+    <li class="toc"><a class="toc" href="#stylesheet">Configuring the stylesheet</a></li>
+    <li class="toc"><a class="toc" href="#render">Rendering the maps</a></li>
+    <li class="toc"><a class="toc" href="#elevation">Elevation data</a>
+        <ol class="toc">
+        <li class="toc"><a class="toc" href="#elevationobt">Obtaining elevation data</a></li>
+        <li class="toc"><a class="toc" href="#elevationimport">Importing elevation data in the database</a></li>
+        <li class="toc"><a class="toc" href="#elevationrender">Rendering elevation lines</a></li>
+        </ol>
+    </li>
+    <li class="toc"><a class="toc" href="#results">Results</a></li>
+    <li class="toc"><a class="toc" href="#todo">Missing features and known bugs</a></li>
+    </ol>
+
+    <h2 id="prereq">Prerequisites</h2>
+    Rendering maps is a complex task, requiring several software components to work together. Since extensive documentation is available online, this tutorial will not explain how to install and configure these components. The version numbers in the following list are merely indicative, other versions might work as well:
+    <ul>
+    <li><a href="http://www.postgresql.org/">PostgreSQL 9.6.2</a>, the database where map data will be stored.</li>
+    <li><a href="http://postgis.net/">Postgis 2.3.2</a>, a plugin for PostgreSQL adding support for geographic objects.</li>
+    <li><a href="https://github.com/openstreetmap/osm2pgsql">osm2pgsql 0.93.0</a>, the tool to import OpenStreetMap data in the local PostgreSQL database.</li>
+    <li><a href="https://github.com/gravitystorm/openstreetmap-carto">OpenStreetMap CartoCSS</a>, the standard OpenStreetMap stylesheet.</li>
+    <li><a href="http://www.lua.org/">Lua 5.3.4</a>, a programming language used by the OpenStreetMap stylesheet to transform tags.</li>
+    <li><a href="https://nodejs.org/">Node.js 7.10.0</a>, a javascript interpreter to run <a href="https://github.com/mapbox/carto">CartoCSS 0.17.3</a>.</li>
+    <li><a href="http://mapnik.org/">Mapnik 3.0.13</a>, the toolkit to actually render the maps. When using Mapnik 3 or later, you also need <a href="https://github.com/mapnik/python-mapnik/">python-mapnik</a>.</li>
+    <li><a href="https://www.python.org/">Python 3.6.1</a>, the programming language in which the hikingmap script is written.</li>
+    <li><a href="http://www.gdal.org/">GDAL 2.1.2</a>, or Geospatial Data Abstraction Library.</li>
+    <li>Some scripts use the bash shell, which is available on most systems. If you happen to run Windows, it's also recommended to install <a href="http://cygwin.com/">cygwin</a></li>
+    </ul>
+    Of course you will also need the <a href="https://github.com/roelderickx/hikingmap">hikingmap package</a>.
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+
+    <h2 id="database">Setting up the database</h2>
+    <h3 id="databaseprep">Preparing the database</h3>
+    It is highly recommended to create a new database where all map and elevation data will be stored. Open a command-line interface to PostgreSQL using the database administrator account, which is most likely called postgres:
+    <code>
+    # psql -U postgres
+    </code>
+    First create a user. For the rest of this tutorial it is assumed the user is named gis with password gis, but of course you are free to choose a different username and/or password:
+    <code>
+    postgres=# CREATE USER gis PASSWORD 'gis';<br/>
+    CREATE ROLE
+    </code>
+    Continue to create a database:
+    <code>
+    postgres=# CREATE DATABASE gis OWNER gis;<br/>
+    CREATE DATABASE
+    </code>
+    Change to the new database and enable both the postgis and the hstore plugin:
+    <code>
+    postgres=# \c gis<br/>
+    You are now connected to database "gis" as user "postgres".<br/>
+    gis=# CREATE EXTENSION postgis;<br/>
+    CREATE EXTENSION<br/>
+    gis=# CREATE EXTENSION hstore;<br/>
+    CREATE EXTENSION
+    </code>
+    
+    <h3 id="databaseload">Loading data in the database</h3>
+    The next step is importing OpenStreetMap data in the newly created database. The data can be obtained from several sources online, for example from <a href="http://download.geofabrik.de/">Geofabrik</a>. You will have the choice between several file types of which the binary format (*.pbf) is the best choice. It has the smallest file size and is natively supported in osm2pgsql. Once the desired area is downloaded, run the following command to import the data:
+    <code>
+    # osm2pgsql -d gis -U gis -s data.osm.pbf --style openstreetmap-carto.style --tag-transform-script openstreetmap-carto.lua --hstore-all
+    </code>
+    The files openstreetmap-carto.style and openstreetmap-carto.lua can be found in the OpenStreetMap CartoCSS package. It might be useful to specify the -C parameter to define the amount of cache memory and --number-processes to define the amount of threads used by osm2pgsql.<br/>
+    Note that it is impossible to import map data which is overlapping with data already in the database. This happens not only when you import the same area twice, but also when areas with common borders are imported. There are two solutions to resolve this problem:
+    <ul>
+    <li>Drop the planet_osm_% tables from your gis database, concatenate all osm files you want to import using a tool called <a href="https://github.com/openstreetmap/osmosis">Osmosis</a> and re-import the resulting file.</li>
+    <li>Import the data in new tables and use merge_new_osm.sql from the hikingmap package to merge the data. Although this solution might be more convenient, it may result in missing objects on the map:
+    <code>
+    # osm2pgsql -d gis -U gis -s --prefix new data.osm.pbf --style openstreetmap-carto.style --tag-transform-script openstreetmap-carto.lua --hstore-all<br/>
+    # psql -d gis -U gis -f merge_new_osm.sql
+    </code>
+    Optionally you can drop the new_% tables from your database afterwards.</li>
+    </ul>
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="stylesheet">Configuring the stylesheet</h2>
+    The design of the map can be completely configured, allowing control over colors, fonts, icons and linestyles. This is achieved using a language called CartoCSS, somewhat similar in syntax to CSS but designed specifically to define maps. The syntax of this language is far beyond the scope of this document, but an introduction can be found <a href="https://github.com/mapbox/carto/blob/master/docs/api/mapnik/3.0.6.rst">here</a>.<br/>
+    The easiest way to start is using the freely available OpenStreetMap stylesheet. After unzipping the archive you will find a file called INSTALL.md with detailed information on how to download the extra required shapefiles. You should also make sure all necessary fonts are installed.<br/>
+    Mapnik requires the stylesheet to be one single XML file. Because lengthy files are rather cumbersome to edit, the stylesheet is developed in several smaller files, assembled together using CartoCSS.<br/>
+    First of all you should specify how mapnik should connect to the database by specifying the user and password. To do so open the file project.mml and look for the osm2pgsql section, you should edit it to look like this:
+    <code>
+    osm2pgsql: &amp;osm2pgsql<br/>
+    &nbsp;&nbsp;type: "postgis"<br/>
+    &nbsp;&nbsp;dbname: "gis"<br/>
+    &nbsp;&nbsp;user: "gis"<br/>
+    &nbsp;&nbsp;password: "gis"<br/>
+    &nbsp;&nbsp;key_field: ""<br/>
+    &nbsp;&nbsp;geometry_field: "way"<br/>
+    &nbsp;&nbsp;extent: "-20037508,-20037508,20037508,20037508"<br/>
+    </code>
+    Next you can generate the XML file:
+    <code>
+    # carto -a "3.0.0" project.mml &gt; mapnik_style.xml
+    </code>
+    Carto is able to generate stylesheets for specific versions of mapnik, it is good practice to pass the exact mapnik version you use to the -a parameter.
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="render">Rendering the maps</h2>
+    Once everything is set up it is finally time to render an actual map. This is done using a toolkit called Mapnik. Because this is only a library and not a ready-to-use application, you should either develop your own application or use hikingmap.<br/>
+    To use hikingmap, put hikingmap.py and hikingmap_style.xml in the same directory as your compiled mapnik stylesheet and run the script with the desired parameters:
+    <table border="0">
+    <tr>
+        <td>-d</td>
+        <td>--dpi</td>
+        <td>Amount of detail to render in dots per inch. This value is unrelated to the setting on your printer, a higher value will simply result in smaller icons, thinner roads and unreadable text</td>
+    </tr>
+    <tr>
+        <td>-s</td>
+        <td>--scale</td>
+        <td>The scale denominator</td>
+    </tr>
+    <tr>
+        <td>-S</td>
+        <td>--scale-factor</td>
+        <td>The scale factor to use when rendering to image formats</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>--pagewidth</td>
+        <td>The width of the resulting map in portrait orientation. The application will automatically use pageheight when rendering in landscape orientation. The value should be the width of the desired papersize minus the horizontal margins on both sides.</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>--pageheight</td>
+        <td>The height of the resulting map in portrait orientation. The application will automatically use pagewidth when rendering in landscape orientation. The value should be the height of the desired papersize minus the vertical margins on both sides.</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>--pageoverlap</td>
+        <td>The amount of overlap between two consecutive pages, in cm.</td>
+    </tr>
+    <tr>
+        <td>-m</td>
+        <td>--mapstyle</td>
+        <td>The filename of the mapnik stylesheet</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>--hikingmapstyle</td>
+        <td>The filename of the hikingmap stylesheet. This stylesheet contains the styles to draw the GPX track and waypoints.</td>
+    </tr>
+    <tr>
+        <td>-w</td>
+        <td>--waypoints</td>
+        <td>If this parameter is given the cumulative distance from the origin will be rendered each N kilometers or miles.</td>
+    </tr>
+    <tr>
+        <td>-u</td>
+        <td>--unit</td>
+        <td>Length unit in which the value of the waypoints parameter is expressed. Possible values are km or mi.</td>
+    </tr>
+    <tr>
+        <td>-o</td>
+        <td>--page-order</td>
+        <td>Order in which pages are generated. Possible values are naturalorder, rectoverso or book.</td>
+    </tr>
+    <tr>
+        <td>-b</td>
+        <td>--basename</td>
+        <td>Output filename base. All output file names will start with this parameter, followed by a sequence number and a file extension depending on the specified format.</td>
+    </tr>
+    <tr>
+        <td>-f</td>
+        <td>--format</td>
+        <td>Output format. See the <a href="http://mapnik.org/docs/v2.2.0/api/python/mapnik._mapnik-module.html#render_to_file">mapnik documentation</a> for possible values</td>
+    </tr>
+    <tr>
+        <td>-v</td>
+        <td>--verbose</td>
+        <td>Display extra information while processing.</td>
+    </tr>
+    <tr>
+        <td>-h</td>
+        <td>--help</td>
+        <td>Display help</td>
+    </tr>
+    <tr>
+        <td colspan="2">gpxfiles</td>
+        <td>The GPX track(s) to follow. More than one GPX file can be given, the script will render all tracks given.</td>
+    </tr>
+    </table>
+    The hikingmap script will try to render the complete track on a minimum of pages. Because it is particularly hard for an algorithm to decide what should be on the map and what shouldn't, the following rules are implemented:
+    <ul>
+    <li>All tracks will be scanned and consecutive tracks will automatically be combined into a single track</li>
+    <li>The tracks will be rendered in the given order. The script tries to center the track as much as possible and decides whether to use portrait or landscape to optimize paper usage</li>
+    <li>If a track is finished and remaining tracks are to be rendered, only the parts which are not yet rendered will be processed. This might be only a part of the track, and only this part will be centered</li>
+    </ul>
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="elevation">Elevation data</h2>
+    When using maps for outdoor purposes like hiking or cycling, elevation lines are a must. However, the OpenStreetMap data does not include elevation data and as such this is also not rendered by default by the OpenStreetMap stylesheet.
+    
+    <h3 id="elevationobt">Obtaining elevation data</h3>
+    First of all you should download elevation data, often called DEM (digital elevation model) or DTM (digital terrain model). It is important to find a model with an acceptable resolution, generally a precision of 3 arc-seconds is enough, meaning that there is one value for the altitude in each area of 3 arc-seconds squared. This value may not be accurate when it is measured by a satelite, the height of trees, snow or other objects may be measured in stead of the height of the terrain itself.<br/>
+    To start you can have a look at the free elevation model offered by NASA's <a href="http://www2.jpl.nasa.gov/srtm/">Shuttle Radar Topography Mission</a>. For most areas between 60 degrees south and 60 degrees north they offer a resolution of <a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">3 arc-seconds</a>, but for the United States a <a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM1/">1 arc-second version</a> is available.<br/>
+    If you need higher resolution data or data beyond 60 degrees north, you might be interested in the data offered by <a href="http://www.viewfinderpanoramas.org/dem3.html">Jonathan de Ferranti</a>.<br/>
+    Both sources offer HGT files, which contain elevation data for an area of 1 degree by 1 degree. Download the files you need and continue to the next step.
+    	
+    <h3 id="elevationimport">Importing elevation data in the database</h3>
+    While it is possible to use the height files without prior processing, it is highly recommended to import the data in the database. To do so you should put import_elevation_in_db.sh from the hikingmap package and run the script from the directory where you saved the downloaded zipfiles. The script will unzip all files and insert the data in the database in a table called elevation. If you decided to use a different schema, username or password for your gis database then you should edit the last line of the script to match the correct values.
+    
+    <h3 id="elevationrender">Rendering elevation lines</h3>
+    It is of course important to tell mapnik how to render the elevation lines. Open the file project.mml from the OpenStreetMap CartoCSS for editing and add a new database connection, with the same connection parameters as the osm2pgsql connection but with a different geometry field:
+    <code>
+    elevation2pgsql: &elevation2pgsql<br/>
+    &nbsp;&nbsp;type: "postgis"<br/>
+    &nbsp;&nbsp;dbname: "gis"<br/>
+    &nbsp;&nbsp;user: "gis"<br/>
+    &nbsp;&nbsp;password: "gis"<br/>
+    &nbsp;&nbsp;key_field: ""<br/>
+    &nbsp;&nbsp;geometry_field: "geom"<br/>
+    &nbsp;&nbsp;extent: "-20037508,-20037508,20037508,20037508"
+    </code>
+    Continue to the section Stylesheet, just below the database connections. It should include a link to a new file elevation.mss, which is included in the hikingmap package:
+    <code>
+    Stylesheet:<br/>
+    &nbsp;&nbsp;- style.mss<br/>
+    &nbsp;&nbsp;- fonts.mss<br/>
+    &nbsp;&nbsp;- shapefiles.mss<br/>
+    &nbsp;&nbsp;- landcover.mss<br/>
+    &nbsp;&nbsp;- elevation.mss<br/>
+    &nbsp;&nbsp;- water.mss<br/>
+    &nbsp;&nbsp;- water-features.mss<br/>
+    &nbsp;&nbsp;- road-colors-generated.mss<br/>
+    &nbsp;&nbsp;- roads.mss<br/>
+    &nbsp;&nbsp;- power.mss<br/>
+    &nbsp;&nbsp;- placenames.mss<br/>
+    &nbsp;&nbsp;- buildings.mss<br/>
+    &nbsp;&nbsp;- stations.mss<br/>
+    &nbsp;&nbsp;- amenity-points.mss<br/>
+    &nbsp;&nbsp;- ferry-routes.mss<br/>
+    &nbsp;&nbsp;- aerialways.mss<br/>
+    &nbsp;&nbsp;- admin.mss<br/>
+    &nbsp;&nbsp;- addressing.mss
+    </code>
+    Next look for a section landuse-overlay and add three new sections below:
+    <code>
+    &nbsp;&nbsp;- id: srtm-10<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;name: srtm-10<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;class: ""<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;geometry: linestring<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;extent: "-180,-89.99,180,89.99"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs-name: "900913"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs: "+proj=latlong +datum=WGS84"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<<: *extents<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;Datasource:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<: *elevation2pgsql<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table: |-<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(SELECT geom, height<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM elevation<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WHERE height::integer % 10 = 0 AND height::integer % 50 != 0<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) AS contours10<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;properties:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minzoom: 14<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;advanced: {}<br/>
+    &nbsp;&nbsp;- id: srtm-50<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;name: srtm-50<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;class: ""<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;geometry: linestring<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;extent: "-180,-89.99,180,89.99"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs-name: "900913"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs: "+proj=latlong +datum=WGS84"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<<: *extents<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;Datasource:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<: *elevation2pgsql<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table: |-<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(SELECT geom, height<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM elevation<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WHERE height::integer % 50 = 0 AND height::integer % 100 != 0<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) AS contours50<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;properties:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minzoom: 12<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;advanced: {}<br/>
+    &nbsp;&nbsp;- id: srtm-100<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;name: srtm-100<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;class: ""<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;geometry: linestring<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;extent: "-180,-89.99,180,89.99"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs-name: "900913"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs: "+proj=latlong +datum=WGS84"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<<: *extents<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;Datasource:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<: *elevation2pgsql<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table: |-<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(SELECT geom, height<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM elevation<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WHERE height::integer % 100 = 0<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) AS contours100<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;properties:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minzoom: 11<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;advanced: {}<br/>
+    </code>
+    When all is in place you have to regenerate the XML style (see <a class="toc" href="#stylesheet">above</a>) before rendering maps with elevation lines.
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="results">Results</h2>
+    Below you can find part of a rendered track. The maps were rendered on a 1:50000 scale for A4 paper size. The resulting PDF files were converted to PNG and subsequently scaled down to save bandwith, they are included here only as an example to show how the track is rendered and how pages fit together. Click on the image for a larger view.
+    <p><a class="image" href="render-example.png"><img src="render-example-thumb.png"/></a></p>
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="todo">Missing features and known bugs</h2>
+    While this tutorial and the offered scripts may be useful for you, it should be clear that no software tool is ever finished. Here is a non-limitative list of missing features and known bugs:
+    <ul>
+    <li>Inclusion of copyright text on the bottom of each page, as requested by <a class="image" href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>.</li>
+    <li>A new stylesheet allowing the map to be printed in black and white. There is nothing wrong with the OpenStreetMap stylesheet, but when printed the difference between for example water and forest is not clear. Text is not always readable and some information is irrelevant for hiking or cycling.</li>
+    <li>Support for WMTS sources. This would greatly simplify the procedure to create maps, since rendering will be done on a remote server.
+    </ul>
+    
+    <p><a class="toc" href="#toc">Return to table of contents</a></p>
+    
+    <h2></h2>
+    
+    <a class="copyright" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">This page</span> is licensed under a <a class="copyright" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    <p>This page was last updated on july 1, 2018</p>
+    </article>
+</body>
+</html>
+

@@ -1,6 +1,6 @@
 # Hikingmap
 
-A python script to render GPX track(s) on a minimum amount of pages. For installation instructions and additional requirements please visit [the hikingmap web page](https://roel.derickx.be/hikingmap/).
+A python script to render GPX track(s) on a minimum amount of pages. For installation instructions and additional requirements please consult the documentation or visit [the hikingmap web page](https://roel.derickx.be/hikingmap/).
 
 ## Usage
 
