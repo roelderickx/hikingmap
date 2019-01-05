@@ -114,9 +114,8 @@ class Tracks:
 
     def __generate_waypoints_track(self, gpxnode, track, waypt_distance, length_unit):
         cumulDistance = 0
-        prev_coord = Coordinate(track[0].lon, track[0].lat)
-        for trackpoint in track:
-            coord = Coordinate(trackpoint.lon, trackpoint.lat)
+        prev_coord = track[0]
+        for coord in track:
             cumulDistance = self.__write_wpt(gpxnode, prev_coord, coord, \
                                              cumulDistance, waypt_distance, length_unit)
             prev_coord = coord

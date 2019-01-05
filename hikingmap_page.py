@@ -226,6 +226,9 @@ class Page(Area):
 
 
     def center_map(self):
+        # set minlat to calculate pagesizelon correctly
+        self.minlat = self.track_area.minlat
+        
         # recalculate pagesizelon and pagesizelat
         self.set_orientation(self.orientation)
 
