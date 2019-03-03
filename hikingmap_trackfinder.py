@@ -22,6 +22,9 @@ from hikingmap_coordinate import Coordinate
 from hikingmap_area import Area
 from hikingmap_page import Page
 
+# global constants
+max_tracks_perm_calc = 6
+
 class TrackFinder:
     def __init__(self, parameters, tracks):
         self.parameters = parameters
@@ -29,9 +32,9 @@ class TrackFinder:
         self.tempoverviewfile = ""
         self.pages = list()
         
-        allpermutations = tracks.tracks
+        allpermutations = [ tracks.tracks ]
         
-        if len(tracks.tracks) < 10:
+        if len(tracks.tracks) <= max_tracks_perm_calc:
             print("Calculating track order permutation resulting in a minimum amount of pages")
             print("This may take a while, checking %d track permutations" % \
                         math.factorial(len(tracks.tracks)))
