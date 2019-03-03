@@ -28,12 +28,20 @@ class TrackFinder:
         self.tempwaypointfile = tracks.tempwaypointfile
         self.tempoverviewfile = ""
         self.pages = list()
-
-        print("Calculating track order permutation resulting in a minimum amount of pages")
-        print("This may take a while, checking %d track permutations" % \
+        
+        allpermutations = tracks.tracks
+        
+        if len(tracks.tracks) < 10:
+            print("Calculating track order permutation resulting in a minimum amount of pages")
+            print("This may take a while, checking %d track permutations" % \
                         math.factorial(len(tracks.tracks)))
+            
+            allpermutations = itertools.permutations(tracks.tracks)
+        else:
+            print("Too many tracks to calculate all track permutations")
+        
         min_amount_pages = -1
-        for trackpermutation in itertools.permutations(tracks.tracks):
+        for trackpermutation in allpermutations:
             self.renderedareas = list()
             self.currentpageindex = 1
             self.currentpage = None #Page(parameters, self.currentpageindex)

@@ -36,6 +36,9 @@ params = Parameters()
 if not params.parse_commandline():
     sys.exit()
 
+if not params.verbose:
+    mapnik.logger.set_severity(getattr(mapnik.severity_type, 'None'))
+
 tracks = Tracks(params)
 
 trackfinder = TrackFinder(params, tracks)
