@@ -31,6 +31,7 @@ class Page(Area):
     def __init__(self, parameters, pageindex):
         super(Page, self).__init__(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
         self.pageindex = pageindex
+        self.debugmode = parameters.debugmode
         self.scale = parameters.scale
         self.pagewidth = parameters.pagewidth
         self.pageheight = parameters.pageheight
@@ -41,6 +42,7 @@ class Page(Area):
 
     def __copy__(self, page):
         self.set_page_area(page)
+        self.debugmode = page.debugmode
         self.scale = page.scale
         self.pagewidth = page.pagewidth
         self.pageheight = page.pageheight
@@ -165,20 +167,28 @@ class Page(Area):
                               lat)
 
 
+    def __raise_calc_border_error(self, message, prev_coord, coord):
+        print("calc_border_point: %s" % message)
+        print("  prev_coord = %s" % prev_coord.to_string())
+        print("  coord = %s" % coord.to_string())
+        print("  page area = %s" % self.to_string())
+        raise Exception()
+
+
     def calc_border_point(self, prev_coord, coord):
-        '''
-        # assert valid parameters and preconditions
-        # prev_coord should be inside page area
-        if not (self.minlon <= prev_coord.lon <= self.maxlon and \
-                self.minlat <= prev_coord.lat <= self.maxlat):
-            raise Exception("calc_border_point: prev_coord is not inside page area! " +
-                        "report this bug to https://github.com/roelderickx/hikingmap/issues")
-        # coord should be outside page area
-        if self.minlon <= coord.lon <= self.maxlon and \
-           self.minlat <= coord.lat <= self.maxlat:
-            raise Exception("calc_border_point: coord is not outside page area! " +
-                        "report this bug to https://github.com/roelderickx/hikingmap/issues")
-        '''
+        if self.debugmode:
+            # assert valid parameters and preconditions
+            # prev_coord should be inside page area
+            if not (self.minlon <= prev_coord.lon <= self.maxlon and \
+                    self.minlat <= prev_coord.lat <= self.maxlat):
+                self.__raise_calc_border_error("prev_coord is not inside page area!", \
+                                               prev_coord, coord)
+            # coord should be outside page area
+            if self.minlon <= coord.lon <= self.maxlon and \
+               self.minlat <= coord.lat <= self.maxlat:
+                self.__raise_calc_border_error("coord is not outside page area!", \
+                                               prev_coord, coord)
+
         # calculate intersection point of line [prev_coord-coord]
         #                             and pagearea [minlon,minlat - maxlon,maxlat]
         intersect_coord = None
@@ -190,11 +200,10 @@ class Page(Area):
             intersect_coord = self.__calc_intersection_lat(coord, prev_coord, self.minlat)
         if intersect_coord == None and prev_coord.lat <= self.maxlat <= coord.lat:
             intersect_coord = self.__calc_intersection_lat(prev_coord, coord, self.maxlat)
-        '''
-        if intersect_coord == None:
-            raise Exception("calc_border_point: no intersection found! " +
-                        "report this bug to https://github.com/roelderickx/hikingmap/issues")
-        '''
+
+        if self.debugmode and intersect_coord == None:
+            self.__raise_calc_border_error("no intersection found!", prev_coord, coord)
+        
         return intersect_coord
 
 

@@ -44,17 +44,27 @@ class TrackFinder:
             print("Too many tracks to calculate all track permutations")
         
         min_amount_pages = -1
-        for trackpermutation in allpermutations:
+        for trackindex, trackpermutation in enumerate(allpermutations):
             self.renderedareas = list()
             self.currentpageindex = 1
             self.currentpage = None #Page(parameters, self.currentpageindex)
             self.firstpointaccepted = False
 
-            for track in trackpermutation:
-                prev_coord = Coordinate(0.0, 0.0)
-                for coord in track:
-                    prev_coord = self.__add_point(prev_coord, coord)
-                self.__flush()
+            try:
+                for track in trackpermutation:
+                    prev_coord = Coordinate(0.0, 0.0)
+                    for coord in track:
+                        prev_coord = self.__add_point(prev_coord, coord)
+                    self.__flush()
+            except:
+                if self.parameters.debugmode:
+                    track_order = [ t[0].to_string() for t in trackpermutation ]
+                    print("Error while calculating permutation %d, track order = %s" % \
+                                (trackindex, " // ".join(track_order)))
+                    self.pages = self.renderedareas
+                    break
+                else:
+                    raise
 
             if min_amount_pages == -1 or len(self.renderedareas) < min_amount_pages:
                 min_amount_pages = len(self.renderedareas)

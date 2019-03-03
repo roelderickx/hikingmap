@@ -36,6 +36,7 @@ class Parameters:
         self.length_unit = "km"
         self.page_order = "naturalorder"
         self.gpxfiles = [ ]
+        self.debugmode = False
         self.verbose = False
 
 
@@ -93,6 +94,7 @@ class Parameters:
                 "page-order=",
                 "basename=",
                 "format=",
+                "debug",
                 "verbose",
                 "help"])
         except getopt.GetoptError:
@@ -102,6 +104,8 @@ class Parameters:
             if opt in ("-h", "--help"):
                 self.__usage()
                 return False
+            elif opt in ("--debug"):
+                self.debugmode = True
             elif opt in ("-v", "--verbose"):
                 self.verbose = True
             elif opt in ("-d", "--dpi"):
