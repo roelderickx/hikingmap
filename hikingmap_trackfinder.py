@@ -49,10 +49,10 @@ class TrackFinder:
             self.currentpageindex = 1
             self.currentpage = None #Page(parameters, self.currentpageindex)
             self.firstpointaccepted = False
-            self.pointskipped = True
 
             try:
                 for track in trackpermutation:
+                    self.pointskipped = True
                     prev_coord = Coordinate(0.0, 0.0)
                     for coord in track:
                         prev_coord = self.__add_point(prev_coord, coord)
@@ -112,7 +112,6 @@ class TrackFinder:
         self.currentpage.initialize_first_point(coord)
         self.currentpageindex += 1
         self.firstpointaccepted = True
-        self.pointskipped = True
         return coord
 
 

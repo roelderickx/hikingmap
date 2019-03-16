@@ -27,6 +27,10 @@ from hikingmap_trackfinder import TrackFinder
 def run_test(gpxfiles, dpi = 200, scale = 50000, scale_factor = 1.0, \
              pagewidth = 20.0, pageheight = 28.7, pageoverlap = 1.0, \
              waypt_distance = 1, length_unit = "km", page_order = "naturalorder"):
+    dirname = gpxfiles[0] + ".result"
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    
     params = Parameters()
     params.dpi = dpi
     params.scale = scale
@@ -36,7 +40,7 @@ def run_test(gpxfiles, dpi = 200, scale = 50000, scale_factor = 1.0, \
     params.pageoverlap = pageoverlap # in cm
     #params.mapstyle = "mapnik_style.xml"
     #params.hikingmapstyle = "hikingmap_style.xml"
-    #params.output_basename = "detail."
+    params.output_basename = os.path.join(dirname, "detail.")
     params.output_format = "png"
     params.generate_overview = True
     params.waypt_distance = waypt_distance
@@ -48,7 +52,7 @@ def run_test(gpxfiles, dpi = 200, scale = 50000, scale_factor = 1.0, \
 
     tracks = Tracks(params)
     trackfinder = TrackFinder(params, tracks)
-    #trackfinder.render()
+    trackfinder.render()
 
 
 # MAIN
