@@ -15,9 +15,9 @@ ln -s ../hikingmap_style.xml .
 
 Next, run the script `runtest.py` without any parameter. The script will try to calculate all pages for all tracks, no error should be raised.
 
-# Adding new test tracks
+## Adding new test tracks
 
 You may stumble upon a track which is not processed by hikingmap. When this happens, copy the track in this test directory and, to avoid copyright infringements, run `anongpx.py inputfile.gpx outputfile.gpx` to anonimize the data.
-Next add the test to the `runtest.py` script on the bottom and try if the error is reproducable by running `runtest.py` on the anonimized track.
+Next add the test at the bottom of to the `runtest.py` script and try if the error is reproducable by running `runtest.py` on the anonimized track.
 If succesful, please create a pull request for the new test track and report an issue on [the hikingmap github issues page](https://github.com/roelderickx/hikingmap/issues).
 

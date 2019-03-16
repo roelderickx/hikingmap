@@ -38,6 +38,7 @@ class Page(Area):
         self.pageoverlap = parameters.pageoverlap
         self.set_orientation(self.orientation_unknown)
         self.track_area = Area(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
+        self.prev_track_area = Area(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
 
 
     def __copy__(self, page):
@@ -92,9 +93,35 @@ class Page(Area):
 
     def initialize_first_point(self, coord):
         self.track_area = Area(coord, coord) # size = 0
+        self.prev_track_area = Area(coord, coord)
         self.set_orientation(self.orientation_unknown)
 
 
+    # add coord to track_area and recalculate page boundaries
+    def __add_point_to_track_area(self, coord):
+        if coord.lon < self.track_area.minlon:
+            self.prev_track_area.minlon = self.track_area.minlon #
+            self.track_area.minlon = coord.lon
+            self.maxlon = self.track_area.maxlon
+            self.minlon = self.maxlon - self.pagesizelon
+        elif coord.lon > self.track_area.maxlon:
+            self.prev_track_area.maxlon = self.track_area.maxlon #
+            self.track_area.maxlon = coord.lon
+            self.minlon = self.track_area.minlon
+            self.maxlon = self.minlon + self.pagesizelon
+
+        if coord.lat < self.track_area.minlat:
+            self.prev_track_area.minlat = self.track_area.minlat #
+            self.track_area.minlat = coord.lat
+            self.maxlat = self.track_area.maxlat
+            self.minlat = self.maxlat - self.pagesizelat
+        elif coord.lat > self.track_area.maxlat:
+            self.prev_track_area.maxlat = self.track_area.maxlat #
+            self.track_area.maxlat = coord.lat
+            self.minlat = self.track_area.minlat
+            self.maxlat = self.minlat + self.pagesizelat
+    
+    
     def __track_area_outside_page(self):
         lon_outside = max(self.track_area.sizelon() - self.pagesizelon, 0)
         lat_outside = max(self.track_area.sizelat() - self.pagesizelat, 0)
@@ -106,24 +133,7 @@ class Page(Area):
 
     # recalculates page area needed to add new coordinate
     def add_next_point(self, prev_coord, coord):
-        # add coord to track_area and recalculate page boundaries
-        if coord.lon < self.track_area.minlon:
-            self.track_area.minlon = coord.lon
-            self.maxlon = self.track_area.maxlon
-            self.minlon = self.maxlon - self.pagesizelon
-        elif coord.lon > self.track_area.maxlon:
-            self.track_area.maxlon = coord.lon
-            self.minlon = self.track_area.minlon
-            self.maxlon = self.minlon + self.pagesizelon
-
-        if coord.lat < self.track_area.minlat:
-            self.track_area.minlat = coord.lat
-            self.maxlat = self.track_area.maxlat
-            self.minlat = self.maxlat - self.pagesizelat
-        elif coord.lat > self.track_area.maxlat:
-            self.track_area.maxlat = coord.lat
-            self.minlat = self.track_area.minlat
-            self.maxlat = self.minlat + self.pagesizelat
+        self.__add_point_to_track_area(coord)
 
         # does the track exceed the page boundary?
         outside_page = False
@@ -148,6 +158,10 @@ class Page(Area):
         return outside_page
 
 
+    def remove_last_point(self):
+        self.track_area = self.prev_track_area
+    
+    
     def __calc_intersection_lon(self, l_start, l_end, lon):
         if l_start.lon == l_end.lon:
             return None
@@ -201,8 +215,10 @@ class Page(Area):
         if intersect_coord == None and prev_coord.lat <= self.maxlat <= coord.lat:
             intersect_coord = self.__calc_intersection_lat(prev_coord, coord, self.maxlat)
 
-        if self.debugmode and intersect_coord == None:
-            self.__raise_calc_border_error("no intersection found!", prev_coord, coord)
+        if self.debugmode:
+            # assert valid result
+            if intersect_coord == None:
+                self.__raise_calc_border_error("no intersection found!", prev_coord, coord)
         
         return intersect_coord
 

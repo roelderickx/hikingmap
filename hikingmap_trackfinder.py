@@ -49,6 +49,7 @@ class TrackFinder:
             self.currentpageindex = 1
             self.currentpage = None #Page(parameters, self.currentpageindex)
             self.firstpointaccepted = False
+            self.pointskipped = True
 
             try:
                 for track in trackpermutation:
@@ -61,10 +62,8 @@ class TrackFinder:
                     track_order = [ t[0].to_string() for t in trackpermutation ]
                     print("Error while calculating permutation %d, track order = %s" % \
                                 (trackindex, " // ".join(track_order)))
-                    self.pages = self.renderedareas
-                    break
-                else:
-                    raise
+                    self.__debug_exception()
+                raise
 
             if min_amount_pages == -1 or len(self.renderedareas) < min_amount_pages:
                 min_amount_pages = len(self.renderedareas)
@@ -90,6 +89,9 @@ class TrackFinder:
                 prev_coord = self.__add_first_point(coord)
             else:
                 prev_coord = self.__add_next_point(prev_coord, coord)
+            self.pointskipped = False
+        else:
+            self.pointskipped = True
         return prev_coord
 
 
@@ -110,6 +112,7 @@ class TrackFinder:
         self.currentpage.initialize_first_point(coord)
         self.currentpageindex += 1
         self.firstpointaccepted = True
+        self.pointskipped = True
         return coord
 
 
@@ -117,17 +120,33 @@ class TrackFinder:
         outside_page = self.currentpage.add_next_point(prev_coord, coord)
         
         if outside_page:
-            border_coord = self.currentpage.calc_border_point(prev_coord, coord)
+            self.currentpage.remove_last_point()
+            if not self.pointskipped:
+                border_coord = self.currentpage.calc_border_point(prev_coord, coord)
+                self.currentpage.add_next_point(prev_coord, border_coord)
             self.currentpage.center_map()
             self.renderedareas.append(self.currentpage)
-            self.__add_first_point(border_coord)
-            self.__add_next_point(border_coord, coord)
+            if not self.pointskipped:
+                self.__add_first_point(border_coord)
+                self.__add_next_point(border_coord, coord)
+            else:
+                self.__add_first_point(coord)
         
-            return border_coord
-        else:
-            return coord
+        return coord
 
 
+    def __debug_exception(self):
+        # output already calculated areas
+        for area in self.renderedareas:
+            print(area.to_string())
+        
+        # render overview map for visualization
+        self.pages = self.renderedareas
+        self.__add_page_overview()
+        self.pages[0].render(self.parameters, self.tempoverviewfile, \
+                             'debug_overview.' + self.parameters.output_format)
+    
+    
     def __add_page_overview(self):
         overviewdoc = minidom.Document()
         gpxnode = overviewdoc.createElement('gpx')

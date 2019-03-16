@@ -37,7 +37,7 @@ def run_test(gpxfiles, dpi = 200, scale = 50000, scale_factor = 1.0, \
     #params.mapstyle = "mapnik_style.xml"
     #params.hikingmapstyle = "hikingmap_style.xml"
     #params.output_basename = "detail."
-    #params.output_format = "pdf"
+    params.output_format = "png"
     params.generate_overview = True
     params.waypt_distance = waypt_distance
     params.length_unit = length_unit
