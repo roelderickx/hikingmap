@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<render_mapnik>
+    <mapstyle>mapnik_style.xml</mapstyle>
+    <hikingmapstyle>hikingmap_style.xml</hikingmapstyle>
+    <outputformat>pdf</outputformat>
+    <scalefactor>1.0</scalefactor>
+    <fontdirs>
+        <fontdir>/usr/share/fonts/noto</fontdir>
+        <fontdir>/usr/share/fonts/noto-cjk</fontdir>
+        <fontdir>/usr/share/fonts/TTF</fontdir>
+    </fontdirs>
+</render_mapnik>
+
