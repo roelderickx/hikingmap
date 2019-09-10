@@ -16,12 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math, mapnik
+import sys, os, math, subprocess
 from hikingmap_coordinate import Coordinate
 from hikingmap_area import Area
-
-# global constants
-inch = 2.54 # cm
 
 class Page(Area):
     orientation_unknown = 0
@@ -266,54 +263,36 @@ class Page(Area):
         self.maxlat = self.minlat + self.pagesizelat_full
 
 
-    def render(self, parameters, tempgpxfile, filename):
-        merc = mapnik.Projection('+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over')
-        longlat = mapnik.Projection('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
-
-        imgwidth = math.trunc(self.get_page_width() / inch * parameters.dpi)
-        imgheight = math.trunc(self.get_page_height() / inch * parameters.dpi)
-
-        m = mapnik.Map(imgwidth, imgheight)
-        mapnik.load_map(m, parameters.mapstyle)
-        mapnik.load_map(m, parameters.hikingmapstyle)
-        m.srs = merc.params()
-
-        if hasattr(mapnik, 'Box2d'):
-            bbox = mapnik.Box2d(self.minlon, self.minlat, self.maxlon, self.maxlat)
-        else:
-            bbox = mapnik.Envelope(self.minlon, self.minlat, self.maxlon, self.maxlat)
-
-        transform = mapnik.ProjTransform(longlat, merc)
-        merc_bbox = transform.forward(bbox)
-        m.zoom_to_box(merc_bbox)
-
-        for gpxfile in parameters.gpxfiles:
-            gpxlayer = mapnik.Layer('GPXLayer')
-            gpxlayer.datasource = mapnik.Ogr(file = gpxfile, layer = 'tracks')
-            gpxlayer.styles.append('GPXStyle')
-            m.layers.append(gpxlayer)
-
+    def render(self, parameters, tempgpxfile, basefilename):
+        args = [ "./render_mapnik.py",
+                 "-o", str(self.minlon),
+                 "-a", str(self.minlat),
+                 "-O", str(self.maxlon),
+                 "-A", str(self.maxlat),
+                 "-w", str(self.get_page_width()),
+                 "-h", str(self.get_page_height()),
+                 "-d", str(parameters.dpi),
+                 "-b", basefilename ]
         if self.pageindex == 0 and parameters.generate_overview:
-            overviewlayer = mapnik.Layer('OverviewLayer')
-            overviewlayer.datasource = mapnik.Ogr(file = tempgpxfile, layer = 'tracks')
-            overviewlayer.styles.append('GPXStyle')
-            m.layers.append(overviewlayer)
+            args = args + [ "-t", tempgpxfile ]
         elif self.pageindex > 0 and parameters.waypt_distance > 0:
-            waypointlayer = mapnik.Layer('WaypointLayer')
-            waypointlayer.datasource = mapnik.Ogr(file = tempgpxfile, layer = 'waypoints')
-            waypointlayer.styles.append('WaypointStyle')
-            m.layers.append(waypointlayer)
-
-        #pdfprint = mapnik.printing.PDFPrinter(pagesize = [ 0.21, 0.297 ], \
-        #                                      margin = 0.005, resolution = parameters.dpi)
-        #context = pdfprint.get_cairo_context()
-        #pdfprint.render_scale(m, ctx=context)
-        #pdfprint.render_legend(m, ctx=context, attribution="(c) OpenStreetMap contributors")
-        #pdfprint.render_map(m, filename)
-
-        mapnik.render_to_file(m, filename,
-                              parameters.output_format,
-                              parameters.scale_factor)
+            args = args + [ "-y", tempgpxfile ]
+        if parameters.verbose:
+            args = args + [ "-v" ]
+        args = args + parameters.gpxfiles
+        
+        retval = True
+        try:
+            process = subprocess.run(args, \
+                                     stdout = subprocess.PIPE, \
+                                     check = True, \
+                                     universal_newlines = True)
+            process.check_returncode()
+            print(process.stdout)
+        except subprocess.CalledProcessError as e:
+            retval = False
+        
+        return retval
 
     
     def to_string(self):

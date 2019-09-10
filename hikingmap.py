@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, mapnik
+import sys
 
 from hikingmap_parameters import Parameters
 from hikingmap_tracks import Tracks
@@ -24,20 +24,9 @@ from hikingmap_trackfinder import TrackFinder
 
 # MAIN
 
-if not hasattr(mapnik, 'mapnik_version') or mapnik.mapnik_version() < 600:
-    raise SystemExit('This script requires Mapnik >= 0.6.0)')
-
-# enable to search other paths for fonts
-mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
-mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
-mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
-
 params = Parameters()
 if not params.parse_commandline():
     sys.exit()
-
-if not params.verbose:
-    mapnik.logger.set_severity(getattr(mapnik.severity_type, 'None'))
 
 tracks = Tracks(params)
 

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math, itertools, tempfile, mapnik
+import sys, os, math, itertools, tempfile
 from xml.dom import minidom
 from hikingmap_coordinate import Coordinate
 from hikingmap_area import Area
@@ -244,8 +244,7 @@ class TrackFinder:
                 
                 outfilename = \
                     self.parameters.output_basename + \
-                    str(page.pageindex).zfill(len(str(len(self.pages)))) + "." + \
-                    self.parameters.output_format
+                    str(page.pageindex).zfill(len(str(len(self.pages))))
 
                 if page.pageindex == 0:
                     page.render(self.parameters, self.tempoverviewfile, outfilename)
