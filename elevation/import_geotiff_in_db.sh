@@ -3,7 +3,7 @@
 GIS_DB=gis
 GIS_USER=gis
 TABLE_NAME=elevation
-CREATE_TABLE=1
+CREATE_TABLE=1 # modify to 0 if your table already exists and you just want to add data
 
 rm *.aux.xml *.shp *.shx *.dbf *.index *.prj *.sql
 

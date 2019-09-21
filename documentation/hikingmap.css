@@ -7,7 +7,6 @@ a:link { color: #808080; text-decoration: underline; }
 a:visited { color: #808080; text-decoration: underline; }
 a:hover { color: #f0f0f0; text-decoration: underline; }
 a:active { color: #f0f0f0; text-decoration: underline; }
-a::after { content: " (" attr(href) ")"; font-size: 0.7em; font-weight: normal; }
 
 h1 { font-size: 36px; font-weight: 600; }
 h2 { font-size: 30px; font-weight: 400; border-bottom: 1px solid #bb1818; }
@@ -17,9 +16,8 @@ h1,h2,h3 { color: #ffffff; }
 ol.toc { list-style-type: decimal; counter-reset: item; }
 li.toc { display: block; }
 li.toc::before { content: counters(item, ".") " "; counter-increment: item; }
-a.toc::after { content: initial; }
-a.image::after { content: initial; }
-a.copyright::after { content: initial; }
+
+a.prereq::after { content: " (" attr(href) ")"; font-size: 0.7em; font-weight: normal; }
 
 code { display: block; background: #484848; border: none; margin: 10px; padding: 10px; border-radius: 10px; font-family: monospace,monospace; font-size: 0.9em; }
 
