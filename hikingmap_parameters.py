@@ -21,7 +21,6 @@ import sys, getopt
 class Parameters:
     def __init__(self):
         # default parameters
-        self.dpi = 200
         self.scale = 50000
         self.pagewidth = 20.0
         self.pageheight = 28.7
@@ -39,8 +38,6 @@ class Parameters:
     def __usage(self):
         print("Usage: " + sys.argv[0] + " [OPTION]... TRACK...\n"
               "Render maps based on given gpx TRACK(s)\n\n"
-              "  -d --dpi            Amount of detail to render "
-                                                "(default " + str(self.dpi) + ")\n"
               "  -s --scale          Scale denominator "
                                                 "(default " + str(self.scale) + ")\n"
               "     --pagewidth      Paper width minus margin in cm "
@@ -68,7 +65,6 @@ class Parameters:
     def parse_commandline(self):
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:s:w:u:o:b:vh", [
-                "dpi=",
                 "scale=",
                 "pagewidth=",
                 "pageheight=",
@@ -92,8 +88,6 @@ class Parameters:
                 self.debugmode = True
             elif opt in ("-v", "--verbose"):
                 self.verbose = True
-            elif opt in ("-d", "--dpi"):
-                self.dpi = int(arg)
             elif opt in ("-s", "--scale"):
                 self.scale = int(arg)
             elif opt in ("--pagewidth"):
@@ -120,7 +114,6 @@ class Parameters:
 
         if self.verbose:
             print("Parameters:")
-            print("dpi = " + str(self.dpi))
             print("scale = " + str(self.scale))
             print("pagewidth = " + str(self.pagewidth))
             print("pageheight = " + str(self.pageheight))

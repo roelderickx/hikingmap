@@ -264,14 +264,13 @@ class Page(Area):
 
 
     def render(self, parameters, tempgpxfile, basefilename):
-        args = [ "./render_mapnik.py",
+        args = [ os.path.join(".", "render.py"),
                  "-o", str(self.minlon),
                  "-a", str(self.minlat),
                  "-O", str(self.maxlon),
                  "-A", str(self.maxlat),
                  "-w", str(self.get_page_width()),
                  "-h", str(self.get_page_height()),
-                 "-d", str(parameters.dpi),
                  "-b", basefilename ]
         if self.pageindex == 0 and parameters.generate_overview:
             args = args + [ "-t", tempgpxfile ]
@@ -279,11 +278,12 @@ class Page(Area):
             args = args + [ "-y", tempgpxfile ]
         if parameters.verbose:
             args = args + [ "-v" ]
-        args = args + parameters.gpxfiles
+        args = args + [ os.path.abspath(f) for f in parameters.gpxfiles ]
         
         retval = True
         try:
             process = subprocess.run(args, \
+                                     cwd = "render_mapnik/", \
                                      stdout = subprocess.PIPE, \
                                      check = True, \
                                      universal_newlines = True)

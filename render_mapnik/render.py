@@ -51,7 +51,6 @@ class Parameters:
               "  -A             Maximum latitude\n"
               "  -w             Page width in cm\n"
               "  -h             Page height in cm\n"
-              "  -d             DPI\n"
               "  -b             Filename, base without extension\n"
               "  -t             Temp track file to render\n"
               "  -y             Temp waypoints file to render\n"
@@ -84,8 +83,6 @@ class Parameters:
                 self.pagewidth = float(arg)
             elif opt in ("-h"):
                 self.pageheight = float(arg)
-            elif opt in ("-d"):
-                self.dpi = int(arg)
             elif opt in ("-b"):
                 self.basefilename = arg
             elif opt in ("-t"):
@@ -133,6 +130,7 @@ class Parameters:
         self.hikingmapstyle = self.__get_xml_subtag_value(xmlmapnik, 'hikingmapstyle', \
                                                           'hikingmap_style.xml')
         self.output_format = self.__get_xml_subtag_value(xmlmapnik, 'outputformat', 'pdf')
+        self.dpi = int(self.__get_xml_subtag_value(xmlmapnik, 'dpi', '300'))
         self.scale_factor = float(self.__get_xml_subtag_value(xmlmapnik, 'scalefactor', '1.0'))
         
         xmlfontdirlist = xmlmapnik.getElementsByTagName('fontdirs')
