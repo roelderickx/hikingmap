@@ -30,6 +30,7 @@ class Parameters:
         self.waypt_distance = 1
         self.length_unit = "km"
         self.page_order = "naturalorder"
+        self.render_dir = "render_mapnik"
         self.gpxfiles = [ ]
         self.debugmode = False
         self.verbose = False
@@ -57,6 +58,8 @@ class Parameters:
                                                 "(default " + str(self.page_order) + ")\n"
               "  -b --basename       Output basename "
                                                 "(default " + self.output_basename + ")\n"
+              "  -r --renderdir      Directory containing the renderscript render.py "
+                                                "(default " + self.render_dir + ")\n"
               "  -v --verbose        Display extra information while processing\n"
               "  -h --help           Display help and exit\n")
 
@@ -64,7 +67,7 @@ class Parameters:
     # returns True if parameters could be parsed successfully
     def parse_commandline(self):
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:s:w:u:o:b:vh", [
+            opts, args = getopt.getopt(sys.argv[1:], "d:s:w:u:o:b:r:vh", [
                 "scale=",
                 "pagewidth=",
                 "pageheight=",
@@ -74,6 +77,7 @@ class Parameters:
                 "unit=",
                 "page-order=",
                 "basename=",
+                "renderdir=",
                 "debug",
                 "verbose",
                 "help"])
@@ -109,6 +113,8 @@ class Parameters:
                 self.page_order = str(arg)
             elif opt in ("-b", "--basename"):
                 self.output_basename = str(arg)
+            elif opt in ("-r", "--renderdir"):
+                self.render_dir = str(arg)
 
         self.gpxfiles = args
 
@@ -123,6 +129,7 @@ class Parameters:
             print("length_unit = " + self.length_unit)
             print("page_order = " + self.page_order)
             print("output_basename = " + self.output_basename)
+            print("render_dir = " + self.render_dir)
             print("gpxfiles = " + ', '.join(self.gpxfiles))
 
         if not self.gpxfiles:

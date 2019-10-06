@@ -283,7 +283,7 @@ class Page(Area):
         retval = True
         try:
             process = subprocess.run(args, \
-                                     cwd = "render_mapnik/", \
+                                     cwd = parameters.render_dir, \
                                      stdout = subprocess.PIPE, \
                                      check = True, \
                                      universal_newlines = True)
