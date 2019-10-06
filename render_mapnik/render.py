@@ -40,6 +40,7 @@ class Parameters:
         self.hikingmapstyle = "hikingmap_style.xml"
         self.output_format = "pdf"
         self.scale_factor = 1.0
+        self.gpxfiles = [ ]
 
 
     def __usage(self):
