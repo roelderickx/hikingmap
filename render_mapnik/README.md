@@ -4,7 +4,9 @@ The render.py script renders an area with given boundaries using mapnik. It is d
 
 ## Usage
 
-Parameters:
+`render.py [OPTION]... gpxfiles`
+
+Options:
 
 | Parameter | Description
 | --------- | -----------
@@ -18,9 +20,11 @@ Parameters:
 | `-y` | Temp waypoints file to render. This is used to render the distance each kilometer or mile, hikingmap will save those waypoints as a temporary GPX file.
 | `-v, --verbose` | Display extra information while processing.
 | `-h, --help` | Display help
-| `inputfiles` | The GPX track(s) to follow. More than one GPX file can be given, the script will render all tracks given.
+| `gpxfiles` | The GPX track(s) to render.
 
-Apart from these parameters there are some specific parameters for this renderer. They need to be configured in the file render_mapnik.config.xml:
+## Configuration
+
+Apart from these parameters there are some specific parameters for this renderer. They need to be configured in the file render_mapnik.config.xml. An example is included in this repository:
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
@@ -38,6 +42,8 @@ Apart from these parameters there are some specific parameters for this renderer
 </render_mapnik>
 ```
 
+Options:
+
 | Tag | Description
 | --- | -----------
 | mapstyle | The filename of the mapnik stylesheet. This stylesheet contains the style to draw the actual map.
@@ -45,5 +51,5 @@ Apart from these parameters there are some specific parameters for this renderer
 | outputformat | Output format. See the [mapnik documentation](http://mapnik.org/docs/v2.2.0/api/python/mapnik._mapnik-module.html#render_to_file) for possible values
 | dpi | Amount of detail to render in dots per inch. This value is unrelated to the setting on your printer, a higher value will simply result in smaller icons, thinner roads and unreadable text
 | scalefactor | The scale factor to use when rendering to image formats
-| fontdirs |
+| fontdirs | One or more subtags fontdir can be added with additional font directories to search for by mapnik.
 

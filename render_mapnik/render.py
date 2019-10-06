@@ -44,7 +44,7 @@ class Parameters:
 
 
     def __usage(self):
-        print("Usage: " + sys.argv[0] + " [OPTION]... inputfile\n"
+        print("Usage: " + sys.argv[0] + " [OPTION]... gpxfiles\n"
               "Render map page using mapnik / postrgesql toolchain\n\n"
               "  -o             Minimum longitude\n"
               "  -O             Maximum longitude\n"
