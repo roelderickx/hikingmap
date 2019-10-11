@@ -4,7 +4,7 @@ A python script to calculate the minimum amount of pages needed to render one or
 
 ## Usage
 
-`hikingmap.py [OPTION]... TRACK...`
+`hikingmap.py [OPTION]... gpxfiles...`
 
 Options:
 
@@ -31,6 +31,5 @@ The hikingmap script will try to render the complete track on a minimum of pages
 
 ## Rendering
 
-The actual rendering will be done by the render.py script found in the render directory (see the `-r` or `--renderdir` parameter).
-By default the rendering will be done using mapnik by the renderscript in the render\_mapnik folder. This requires setting up a database and a stylesheet. Please consult the README.md file in the render\_mapnik folder as well as the documentation.
+The actual rendering will be done by an external renderer (see the `-r` or `--renderdir` parameter). For more information on how to write your own render script or how to set up the default using the postgresql / mapnik toolchain, please consult the documentation.
 

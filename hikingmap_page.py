@@ -264,7 +264,7 @@ class Page(Area):
 
 
     def render(self, parameters, tempgpxfile, basefilename):
-        args = [ os.path.join(".", "render.py"),
+        args = [ os.path.join(os.path.abspath(parameters.render_dir), "render.py"),
                  "-o", str(self.minlon),
                  "-a", str(self.minlat),
                  "-O", str(self.maxlon),
@@ -283,12 +283,12 @@ class Page(Area):
         retval = True
         try:
             process = subprocess.run(args, \
-                                     cwd = parameters.render_dir, \
+                                     cwd = os.path.abspath(parameters.render_dir), \
                                      stdout = subprocess.PIPE, \
                                      check = True, \
                                      universal_newlines = True)
             process.check_returncode()
-            print(process.stdout)
+            print(process.stdout, end = '')
         except subprocess.CalledProcessError as e:
             retval = False
         
