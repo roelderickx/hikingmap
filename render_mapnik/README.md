@@ -4,7 +4,7 @@ The render.py script renders an area with given boundaries using mapnik. It is d
 
 ## Usage
 
-`render.py [OPTION]... gpxfiles`
+`render.py [OPTION]... gpxfiles...`
 
 Options:
 
@@ -48,8 +48,8 @@ Options:
 | --- | -----------
 | mapstyle | The filename of the mapnik stylesheet. This stylesheet contains the style to draw the actual map.
 | hikingmapstyle | The filename of the hikingmap stylesheet. This stylesheet contains the styles to draw the GPX track and waypoints.
-| outputformat | Output format. See the [mapnik documentation](http://mapnik.org/docs/v2.2.0/api/python/mapnik._mapnik-module.html#render_to_file) for possible values
-| dpi | Amount of detail to render in dots per inch. This value is unrelated to the setting on your printer, a higher value will simply result in smaller icons, thinner roads and unreadable text
-| scalefactor | The scale factor to use when rendering to image formats
-| fontdirs | One or more subtags fontdir can be added with additional font directories to search for by mapnik.
+| outputformat | Output format. See the [mapnik documentation](http://mapnik.org/docs/v2.2.0/api/python/mapnik._mapnik-module.html#render_to_file) for possible values.
+| dpi | Amount of detail to render in dots per inch. This value is unrelated to the setting on your printer, a higher value will simply result in smaller icons, thinner roads and unreadable text.
+| scalefactor | The scale factor to use when rendering to image formats.
+| fontdirs | Optional. Can contain one or more fontdir subtags with additional font directories to be used by mapnik.
 
