@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title>Mapnik renderer</title>
+    <link rel="stylesheet" type="text/css" href="hikingmap.css" />
+</head>
+<body>
+    <div class="maincontent">
+    <h1>Mapnik renderer</h1>
+
+<!--
+- introduction
+    
+- prerequisites
+- setting up the database
+- configuration of the stylesheet
+- elevation
+  - choosing your elevation model source
+  - importing the DEM in the database
+  - configuration of the stylesheet
+- test your setup
+- roadmap
+- copyright
+-->
+    <h2>Introduction</h2>
+    This document describes how to render maps using mapnik, with the OpenStreetMap data loaded in a PostgreSQL database. <!-- render mapnik uses postgresql / mapnik ... -->
+
+    <h2>Disclaimer</h2>
+The scripts in this document are written and verified to work in a Linux environment. There is no reason it shouldn't work on Windows, Mac OS or other operating systems, but it might require additional steps or a slightly different approach. If you have any questions or feedback, you are welcome to contact me on roel.derickx --at-- gmail.
+
+    <h2 id="toc">Table of contents</h2>
+    <ol class="toc">
+    <li class="toc"><a href="#prereq">Prerequisites</a></li>
+    <li class="toc"><a href="#database">Setting up the database</a>
+        <ol class="toc">
+        <li class="toc"><a href="#databaseprep">Preparing the database</a></li>
+        <li class="toc"><a href="#databaseload">Loading data in the database</a></li>
+        </ol>
+    </li>
+    <li class="toc"><a href="#stylesheet">Configuring the stylesheet</a></li>
+    <li class="toc"><a href="#elevation">Elevation data</a>
+        <ol class="toc">
+        <li class="toc"><a href="#elevationobt">Obtaining elevation data</a></li>
+        <li class="toc"><a href="#elevationimport">Importing elevation data in the database</a></li>
+        <li class="toc"><a href="#elevationrender">Rendering elevation lines</a></li>
+        </ol>
+    </li>
+    <li class="toc"><a href="#testsetup">Test your setup</a></li>
+    <li class="toc"><a href="#roadmap">Roadmap</a></li>
+    </ol>
+
+    <h2 id="prereq">Prerequisites</h2>
+    Rendering maps is a complex task, requiring several software components to work together. Since extensive documentation is available online, this tutorial will not explain how to install and configure these components. The version numbers in the following list are merely indicative, other versions might work as well:
+    <ul>
+    <li><a class="prereq" href="http://www.postgresql.org/">PostgreSQL 9.6.2</a>, the database where map data will be stored.</li>
+    <li><a class="prereq" href="http://postgis.net/">Postgis 2.3.2</a>, a plugin for PostgreSQL adding support for geographic objects.</li>
+    <li><a class="prereq" href="https://github.com/openstreetmap/osm2pgsql">osm2pgsql 0.93.0</a>, the tool to import OpenStreetMap data in the local PostgreSQL database.</li>
+    <li><a class="prereq" href="https://github.com/gravitystorm/openstreetmap-carto">OpenStreetMap CartoCSS</a>, the standard OpenStreetMap stylesheet.</li>
+    <li><a class="prereq" href="http://www.lua.org/">Lua 5.3.4</a>, a programming language used by the OpenStreetMap stylesheet to transform tags.</li>
+    <li><a class="prereq" href="https://nodejs.org/">Node.js 7.10.0</a>, a javascript interpreter to run <a class="prereq" href="https://github.com/mapbox/carto">CartoCSS 0.17.3</a>.</li>
+    <li><a class="prereq" href="http://mapnik.org/">Mapnik 3.0.13</a>, the toolkit to actually render the maps. When using Mapnik 3 or later, you also need <a class="prereq" href="https://github.com/mapnik/python-mapnik/">python-mapnik</a>.</li>
+    <li><a class="prereq" href="https://www.python.org/">Python 3.6.1</a>, the programming language in which the hikingmap script is written.</li>
+    <li><a class="prereq" href="http://www.gdal.org/">GDAL 2.1.2</a>, or Geospatial Data Abstraction Library.</li>
+    <li>Some scripts use the bash shell, which is available on most systems. If you happen to run Windows, it's also recommended to install <a class="prereq" href="http://cygwin.com/">cygwin</a></li>
+    </ul>
+    
+    <p><a href="#toc">Return to table of contents</a></p>
+
+    <h2 id="database">Setting up the database</h2>
+    <h3 id="databaseprep">Preparing the database</h3>
+    It is highly recommended to create a new database where all map and elevation data will be stored. Open a command-line interface to PostgreSQL using the database administrator account, which is most likely called postgres:
+    <code>
+    # psql -U postgres
+    </code>
+    First create a user. For the rest of this tutorial it is assumed the user is named gis with password gis, but of course you are free to choose a different username and/or password:
+    <code>
+    postgres=# CREATE USER gis PASSWORD 'gis';<br/>
+    CREATE ROLE
+    </code>
+    Continue to create a database:
+    <code>
+    postgres=# CREATE DATABASE gis OWNER gis;<br/>
+    CREATE DATABASE
+    </code>
+    Change to the new database and enable both the postgis and the hstore plugin:
+    <code>
+    postgres=# \c gis<br/>
+    You are now connected to database "gis" as user "postgres".<br/>
+    gis=# CREATE EXTENSION postgis;<br/>
+    CREATE EXTENSION<br/>
+    gis=# CREATE EXTENSION hstore;<br/>
+    CREATE EXTENSION
+    </code>
+    
+    <h3 id="databaseload">Loading data in the database</h3>
+    The next step is importing OpenStreetMap data in the newly created database. The data can be obtained from several sources online, for example from <a href="http://download.geofabrik.de/">Geofabrik</a>. You will have the choice between several file types of which the binary format (*.pbf) is the best choice. It has the smallest file size and is natively supported in osm2pgsql. Once the desired area is downloaded, run the following command to import the data:
+    <code>
+    # osm2pgsql -d gis -U gis -s data.osm.pbf --style openstreetmap-carto.style --tag-transform-script openstreetmap-carto.lua --hstore-all
+    </code>
+    The files openstreetmap-carto.style and openstreetmap-carto.lua can be found in the OpenStreetMap CartoCSS package. It might be useful to specify the -C parameter to define the amount of cache memory and --number-processes to define the amount of threads used by osm2pgsql.<br/>
+    Note that it is impossible to import map data which is overlapping with data already in the database. This happens not only when you import the same area twice, but also when areas with common borders are imported. There are two solutions to resolve this problem:
+    <ul>
+    <li>Drop the planet_osm_% tables from your gis database, concatenate all osm files you want to import using a tool called <a href="https://github.com/openstreetmap/osmosis">Osmosis</a> and re-import the resulting file.</li>
+    <li>Import the data in new tables and use merge_new_osm.sql from the hikingmap package to merge the data. Although this solution might be more convenient, it may result in missing objects on the map:
+    <code>
+    # osm2pgsql -d gis -U gis -s --prefix new data.osm.pbf --style openstreetmap-carto.style --tag-transform-script openstreetmap-carto.lua --hstore-all<br/>
+    # psql -d gis -U gis -f merge_new_osm.sql
+    </code>
+    Optionally you can drop the new_% tables from your database afterwards.</li>
+    </ul>
+    
+    <p><a href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="stylesheet">Configuring the stylesheet</h2>
+    The design of the map can be completely configured, allowing control over colors, fonts, icons and linestyles. This is achieved using a language called CartoCSS, somewhat similar in syntax to CSS but designed specifically to define maps. The syntax of this language is far beyond the scope of this document, but an introduction can be found <a href="https://github.com/mapbox/carto/blob/master/docs/api/mapnik/3.0.6.rst">here</a>.<br/>
+    The easiest way to start is using the freely available OpenStreetMap stylesheet. After unzipping the archive you will find a file called INSTALL.md with detailed information on how to download the extra required shapefiles. You should also make sure all necessary fonts are installed.<br/>
+    Mapnik requires the stylesheet to be one single XML file. Because lengthy files are rather cumbersome to edit, the stylesheet is developed in several smaller files, assembled together using CartoCSS.<br/>
+    First of all you should specify how mapnik should connect to the database by specifying the user and password. To do so open the file project.mml and look for the osm2pgsql section, you should edit it to look like this:
+    <code>
+    osm2pgsql: &amp;osm2pgsql<br/>
+    &nbsp;&nbsp;type: "postgis"<br/>
+    &nbsp;&nbsp;dbname: "gis"<br/>
+    &nbsp;&nbsp;user: "gis"<br/>
+    &nbsp;&nbsp;password: "gis"<br/>
+    &nbsp;&nbsp;key_field: ""<br/>
+    &nbsp;&nbsp;geometry_field: "way"<br/>
+    &nbsp;&nbsp;extent: "-20037508,-20037508,20037508,20037508"<br/>
+    </code>
+    Next you can generate the XML file:
+    <code>
+    # carto -a "3.0.0" project.mml &gt; mapnik_style.xml
+    </code>
+    Carto is able to generate stylesheets for specific versions of mapnik, it is good practice to pass the exact mapnik version you use to the -a parameter.
+    
+    <p><a href="#toc">Return to table of contents</a></p>
+    
+    <h2 id="elevation">Elevation data</h2>
+    When using maps for outdoor purposes like hiking or cycling, elevation lines are a must. However, the OpenStreetMap data does not include elevation data and as such this is also not rendered by default by the OpenStreetMap stylesheet.
+    
+    <h3 id="elevationobt">Obtaining elevation data</h3>
+    First of all you should download elevation data, often called DEM (digital elevation model) or DTM (digital terrain model). It is important to find a model with an acceptable resolution, generally a precision of 3 arc-seconds is enough, meaning that there is one value for the altitude in each area of 3 arc-seconds squared. This value may not be accurate when it is measured by a satelite, the height of trees, snow or other objects may be measured in stead of the height of the terrain itself.<br/>
+    To start you can have a look at the free elevation model offered by NASA's <a href="http://www2.jpl.nasa.gov/srtm/">Shuttle Radar Topography Mission</a>. For most areas between 60 degrees south and 60 degrees north they offer a resolution of <a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">3 arc-seconds</a>, but for the United States a <a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM1/">1 arc-second version</a> is available.<br/>
+    Since around 2015 they offer a global resolution of 1 arc-second through <a href="https://earthexplorer.usgs.gov/">EarthExplorer</a> as well, but you need to create a user account first and it is suggested to use the Bulk Download Application to download vast areas. For more information please consult <a href="https://lta.cr.usgs.gov/EEHelp/ee_help">the help index</a> first.<br/>
+    If you need higher resolution data or data beyond 60 degrees north, you might be interested in the data offered by <a href="http://www.viewfinderpanoramas.org/dem3.html">Jonathan de Ferranti</a>.<br/>
+    All sources offer either HGT or GeoTIFF files, which each contain elevation data for an area of 1 degree by 1 degree. Download the files you need and continue to the next step.
+    	
+    <h3 id="elevationimport">Importing elevation data in the database</h3>
+    While it is possible to use the height files without prior processing, it is highly recommended to import the data in the database. To do so you should copy either elevation/import_in_db.sh (for HGT files) or elevation/import_geotiff_in_db.sh (for GeoTIFF files) from the hikingmap package to the directory where you downloadeded and unzipped the elevation files. Modify the database schema and user on top of the script if necessary and run the script; the data will be imported in the database in a table called elevation. Note the script has a parameter to choose a different table name, but this requires modifying the queries in the stylesheet below as well.<br/>
+    Warning: the script will delete certain files to minimize disk space while processing. Keep in mind not to put other valuable files apart from the downloaded files and the import script in the same directory!
+    
+    <h3 id="elevationrender">Rendering elevation lines</h3>
+    It is of course important to tell mapnik how to render the elevation lines. Open the file project.mml from the OpenStreetMap CartoCSS for editing and add a new database connection, with the same connection parameters as the osm2pgsql connection but with a different geometry field:
+    <code>
+    elevation2pgsql: &elevation2pgsql<br/>
+    &nbsp;&nbsp;type: "postgis"<br/>
+    &nbsp;&nbsp;dbname: "gis"<br/>
+    &nbsp;&nbsp;user: "gis"<br/>
+    &nbsp;&nbsp;password: "gis"<br/>
+    &nbsp;&nbsp;key_field: ""<br/>
+    &nbsp;&nbsp;geometry_field: "geom"<br/>
+    &nbsp;&nbsp;extent: "-20037508,-20037508,20037508,20037508"
+    </code>
+    Continue to the section Stylesheet, just below the database connections. It should include a link to a new file elevation.mss, which is included in the hikingmap package:
+    <code>
+    Stylesheet:<br/>
+    &nbsp;&nbsp;- style.mss<br/>
+    &nbsp;&nbsp;- fonts.mss<br/>
+    &nbsp;&nbsp;- shapefiles.mss<br/>
+    &nbsp;&nbsp;- landcover.mss<br/>
+    &nbsp;&nbsp;- elevation.mss<br/>
+    &nbsp;&nbsp;- water.mss<br/>
+    &nbsp;&nbsp;- water-features.mss<br/>
+    &nbsp;&nbsp;- road-colors-generated.mss<br/>
+    &nbsp;&nbsp;- roads.mss<br/>
+    &nbsp;&nbsp;- power.mss<br/>
+    &nbsp;&nbsp;- placenames.mss<br/>
+    &nbsp;&nbsp;- buildings.mss<br/>
+    &nbsp;&nbsp;- stations.mss<br/>
+    &nbsp;&nbsp;- amenity-points.mss<br/>
+    &nbsp;&nbsp;- ferry-routes.mss<br/>
+    &nbsp;&nbsp;- aerialways.mss<br/>
+    &nbsp;&nbsp;- admin.mss<br/>
+    &nbsp;&nbsp;- addressing.mss
+    </code>
+    Next look for a section landuse-overlay and add three new sections below:
+    <code>
+    &nbsp;&nbsp;- id: srtm-10<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;name: srtm-10<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;class: ""<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;geometry: linestring<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;extent: "-180,-89.99,180,89.99"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs-name: "900913"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs: "+proj=latlong +datum=WGS84"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<<: *extents<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;Datasource:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<: *elevation2pgsql<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table: |-<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(SELECT geom, height<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM elevation<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WHERE height::integer % 10 = 0 AND height::integer % 50 != 0<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) AS contours10<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;properties:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minzoom: 14<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;advanced: {}<br/>
+    &nbsp;&nbsp;- id: srtm-50<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;name: srtm-50<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;class: ""<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;geometry: linestring<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;extent: "-180,-89.99,180,89.99"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs-name: "900913"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs: "+proj=latlong +datum=WGS84"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<<: *extents<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;Datasource:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<: *elevation2pgsql<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table: |-<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(SELECT geom, height<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM elevation<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WHERE height::integer % 50 = 0 AND height::integer % 100 != 0<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) AS contours50<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;properties:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minzoom: 12<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;advanced: {}<br/>
+    &nbsp;&nbsp;- id: srtm-100<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;name: srtm-100<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;class: ""<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;geometry: linestring<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;extent: "-180,-89.99,180,89.99"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs-name: "900913"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;srs: "+proj=latlong +datum=WGS84"<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<<: *extents<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;Datasource:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<: *elevation2pgsql<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table: |-<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(SELECT geom, height<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM elevation<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WHERE height::integer % 100 = 0<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) AS contours100<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;properties:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minzoom: 11<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;advanced: {}<br/>
+    </code>
+    When all is in place you have to regenerate the XML style (see <a href="#stylesheet">above</a>) before rendering maps with elevation lines.
+    
+    <p><a href="#toc">Return to table of contents</a></p>
+    
+    <h3 id="testsetup">Test your setup</h3>
+    ...
+    
+    <p><a href="#toc">Return to table of contents</a></p>
+    
+    <h3 id="roadmap">Roadmap</h3>
+    ...
+    
+    <p><a href="#toc">Return to table of contents</a></p>
+    
+    <h2></h2>
+    
+    <a class="copyright" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">This page</span> is licensed under a <a class="copyright" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    <p>This page was last updated on october 11, 2019</p>
+    </article>
+</body>
+</html>
+
