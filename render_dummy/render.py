@@ -16,11 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, getopt, math, mapnik
-from xml.dom import minidom
-
-# global constants
-inch = 2.54 # cm
+import sys, getopt
 
 class Parameters:
     def __init__(self):
