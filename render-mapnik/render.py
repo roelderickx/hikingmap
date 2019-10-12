@@ -109,11 +109,7 @@ class Parameters:
             print("tempwaypointfile = " + self.tempwaypointfile)
             print("gpxfiles = " + ', '.join(self.gpxfiles))
 
-        if not self.gpxfiles:
-            print("Nothing to do!")
-            return False
-        else:
-            return True
+        return True
 
 
     def __get_xml_subtag_value(self, xmlnode, sublabelname, defaultvalue):
@@ -196,13 +192,6 @@ elif parameters.tempwaypointfile != "":
     waypointlayer.datasource = mapnik.Ogr(file = parameters.tempwaypointfile, layer = 'waypoints')
     waypointlayer.styles.append('WaypointStyle')
     m.layers.append(waypointlayer)
-
-#pdfprint = mapnik.printing.PDFPrinter(pagesize = [ 0.21, 0.297 ], \
-#                                      margin = 0.005, resolution = parameters.dpi)
-#context = pdfprint.get_cairo_context()
-#pdfprint.render_scale(m, ctx=context)
-#pdfprint.render_legend(m, ctx=context, attribution="(c) OpenStreetMap contributors")
-#pdfprint.render_map(m, filename)
 
 mapnik.render_to_file(m, parameters.basefilename + "." + parameters.output_format,
                       parameters.output_format,

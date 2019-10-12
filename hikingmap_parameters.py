@@ -30,7 +30,7 @@ class Parameters:
         self.waypt_distance = 1
         self.length_unit = "km"
         self.page_order = "naturalorder"
-        self.render_dir = "render_mapnik"
+        self.render_dir = "render-mapnik"
         self.gpxfiles = [ ]
         self.debugmode = False
         self.verbose = False

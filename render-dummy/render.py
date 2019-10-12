@@ -100,11 +100,7 @@ class Parameters:
             print("tempwaypointfile = " + self.tempwaypointfile)
             print("gpxfiles = " + ', '.join(self.gpxfiles))
 
-        if not self.gpxfiles:
-            print("Nothing to do!")
-            return False
-        else:
-            return True
+        return True
 
 
 
