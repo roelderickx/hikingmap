@@ -17,9 +17,10 @@ The scripts in this document are written and verified to work in a Linux environ
 
     <h2 id="toc">Table of contents</h2>
     <ol class="toc">
+    <li class="toc"><a href="#download">Download</a></li>
     <li class="toc"><a href="#render">Rendering</a>
         <ol class="toc">
-        <li class="toc"><a href="#renderchoice">Choosing the renderer</a></li>
+        <li class="toc"><a href="#renderchoice">Renderer projects</a></li>
         <li class="toc"><a href="#renderwrite">Writing your own renderer</a></li>
         </ol>
     </li>
@@ -31,26 +32,78 @@ The scripts in this document are written and verified to work in a Linux environ
         </ol>
     </li>
     </ol>
+    
+    <h2 id="download">Download</h2>
+    You can find the hikingmap package <a href="https://github.com/roelderickx/hikingmap">on github</a>, to run the scripts you need a working installation of <a href="https://www.python.org/">Python</a>.
+    
+    <p><a href="#toc">Return to table of contents</a></p>
 
     <h2 id="render">Rendering</h2>
-    ...
+    Hikingmap will only calculate the page boundaries, the actual rendering will be done by an external render script. You can either choose one from the list below or write your own.
     
-    <h3 id="renderchoice">Choosing the renderer</h3>
+    <h3 id="renderchoice">Renderer projects</h3>
     <ul>
-    <li><a href="render_mapnik.html">render-mapnik</a></li>
-    <li>more to come...</li>
+    <li>render-mapnik: this is the default renderer used by hikingmap. All map data will be stored offline and elevation lines are supported, however the <a href="render_mapnik.html">setup</a> is rather difficult.</li>
+    <li><a href="https://github.com/roelderickx/render-tiles">render-tiles</a>: this is an alternative renderer which was initially written to be used with <a href="https://wiki.openstreetmap.org/wiki/MBTiles">MBTiles files</a>, but it can be configured to use a web based tile server as well. Please consult the documentation on the project page before use.</li>
     </ul>
     
     <h3 id="renderwrite">Writing your own renderer</h3>
-    ...
+    All you have to do to write your own renderer is to create a directory with a render.py script inside. Hikingmap passes certain parameters, you are free to use or ignore them as you wish. A good start is the dummy renderer included in the hikingmap package, it contains already a class for parsing all parameters.
+    <table border="0">
+    <tr>
+        <td>-o</td>
+        <td>Minimum longitude of the area boundaries</td>
+    </tr>
+    <tr>
+        <td>-O</td>
+        <td>Maximum longitude of the area boundaries</td>
+    </tr>
+    <tr>
+        <td>-a</td>
+        <td>Minimum latitude of the area boundaries</td>
+    </tr>
+    <tr>
+        <td>-A</td>
+        <td>Maximum latitude of the area boundaries</td>
+    </tr>
+    <tr>
+        <td>-w</td>
+        <td>Page width in cm</td>
+    </tr>
+    <tr>
+        <td>-h</td>
+        <td>Page height in cm</td>
+    </tr>
+    <tr>
+        <td>-t</td>
+        <td>Temp track file to render. This is used to draw the page boundaries of the overview map, hikingmap will save those as a temporary GPX file.</td>
+    </tr>
+    <tr>
+        <td>-y</td>
+        <td>Temp waypoints file to render. This is used to render the distance each kilometer or mile, hikingmap will save those waypoints as a temporary GPX file.</td>
+    </tr>
+    <tr>
+        <td>-v, --verbose</td>
+        <td>Display extra information while processing.</td>
+    </tr>
+    <tr>
+        <td>-h, --help</td>
+        <td>Display help</td>
+    </tr>
+    <tr>
+        <td>gpxfiles</td>
+        <td>The GPX track(s) to render.</td>
+    </tr>
+    </table>
+
     
     <p><a href="#toc">Return to table of contents</a></p>
     
     <h2 id="hikingmap">Hikingmap</h2>
-    To run the script in the <a href="https://github.com/roelderickx/hikingmap">hikingmap package</a> you need a working installation of <a href="https://www.python.org/">Python</a>.
 
     <h3 id="hmusage">Usage</h3>
-    To use hikingmap, run the hikingmap.py script with the desired parameters:
+    <code>hikingmap.py [OPTION]... gpxfiles...</code>
+    Options:
     <table border="0">
     <tr>
         <td>-s</td>
@@ -130,8 +183,7 @@ The scripts in this document are written and verified to work in a Linux environ
     
     <h3 id="hmroadmap">Roadmap</h3>
     <ul>
-    <li>recenter map in case of side tracks</li>
-    <li>mbtiles renderer</li>
+    <li>Currently the track is centered on a page, either horizontally in case of portrait or vertically in case of landscape orientation. However, side tracks can fall outside the boundaries of the page because of this. The centering should be made more intelligent to maximize the amount of tracks on the page</li>
     </ul>
     
     <p><a href="#toc">Return to table of contents</a></p>
