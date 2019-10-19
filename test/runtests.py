@@ -59,7 +59,7 @@ parser.add_argument('renderoptions', nargs=argparse.REMAINDER, \
                     help='render options, rendercommand is required when adding options')
 args = parser.parse_args()
 
-#run_test(args, gpxfiles = [ "test1.gpx" ])
+run_test(args, gpxfiles = [ "test1.gpx" ])
 run_test(args, gpxfiles = [ "test2.gpx" ])
 run_test(args, gpxfiles = [ "test3.gpx" ])
 
