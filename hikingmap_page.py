@@ -264,7 +264,7 @@ class Page(Area):
 
 
     def render(self, parameters, tempgpxfile, basefilename):
-        args = [ os.path.join(os.path.abspath(parameters.render_dir), "render.py"),
+        args = [ parameters.rendercommand,
                  "-o", str(self.minlon),
                  "-a", str(self.minlat),
                  "-O", str(self.maxlon),
@@ -278,12 +278,13 @@ class Page(Area):
             args = args + [ "-y", tempgpxfile ]
         if parameters.verbose:
             args = args + [ "-v" ]
+        if parameters.renderoptions:
+            args = args + parameters.renderoptions
         args = args + [ os.path.abspath(f) for f in parameters.gpxfiles ]
         
         retval = True
         try:
             process = subprocess.run(args, \
-                                     cwd = os.path.abspath(parameters.render_dir), \
                                      stdout = subprocess.PIPE, \
                                      check = True, \
                                      universal_newlines = True)
