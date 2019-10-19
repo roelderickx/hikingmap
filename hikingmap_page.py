@@ -269,8 +269,8 @@ class Page(Area):
                  "-a", str(self.minlat),
                  "-O", str(self.maxlon),
                  "-A", str(self.maxlat),
-                 "-w", str(self.get_page_width()),
-                 "-h", str(self.get_page_height()),
+                 "--pagewidth", str(self.get_page_width()),
+                 "--pageheight", str(self.get_page_height()),
                  "-b", basefilename ]
         if self.pageindex == 0 and parameters.generate_overview:
             args = args + [ "-t", tempgpxfile ]

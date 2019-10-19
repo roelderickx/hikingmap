@@ -43,7 +43,8 @@ def parse_commandline():
                         default='naturalorder', dest='page_order', \
                         help='order in which pages are generated (default: %(default)s)')
     parser.add_argument('-b', '--basename', default='detail.', dest='output_basename', \
-                        help='output basename (default: %(default)s)')
+                        help='output filename, hikingmap will add the pagenumber and extension ' + \
+                             '(default: %(default)s)')
     parser.add_argument('--debug', action='store_true', dest='debugmode', \
                         help=argparse.SUPPRESS)
     parser.add_argument('-v', '--verbose', action='store_true', \
