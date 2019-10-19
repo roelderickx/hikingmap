@@ -16,32 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, mapnik
+import argparse, sys, os
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from hikingmap_parameters import Parameters
 from hikingmap_tracks import Tracks
 from hikingmap_trackfinder import TrackFinder
 
-def run_test(gpxfiles, dpi = 200, scale = 50000, scale_factor = 1.0, \
-             pagewidth = 20.0, pageheight = 28.7, pageoverlap = 1.0, \
-             waypt_distance = 1, length_unit = "km", page_order = "naturalorder"):
-    dirname = gpxfiles[0] + ".result"
+def run_test(args, gpxfiles, scale = 50000, pagewidth = 20.0, pageheight = 28.7, \
+             pageoverlap = 1.0, waypt_distance = 1, length_unit = "km", \
+             page_order = "naturalorder"):
+    dirname = os.path.abspath(gpxfiles[0] + ".result")
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     
-    params = Parameters()
-    params.dpi = dpi
+    params = argparse.Namespace()
     params.scale = scale
-    params.scale_factor = scale_factor
     params.pagewidth = pagewidth
     params.pageheight = pageheight
-    params.pageoverlap = pageoverlap # in cm
-    #params.mapstyle = "mapnik_style.xml"
-    #params.hikingmapstyle = "hikingmap_style.xml"
+    params.pageoverlap = pageoverlap 
     params.output_basename = os.path.join(dirname, "detail.")
-    params.output_format = "png"
     params.generate_overview = True
     params.waypt_distance = waypt_distance
     params.length_unit = length_unit
@@ -49,22 +43,23 @@ def run_test(gpxfiles, dpi = 200, scale = 50000, scale_factor = 1.0, \
     params.gpxfiles = gpxfiles
     params.debugmode = True
     params.verbose = True
+    params.rendercommand = args.rendercommand
+    params.renderoptions = args.renderoptions
 
     tracks = Tracks(params)
     trackfinder = TrackFinder(params, tracks)
     trackfinder.render()
 
-
 # MAIN
-if not hasattr(mapnik, 'mapnik_version') or mapnik.mapnik_version() < 600:
-    raise SystemExit('This script requires Mapnik >= 0.6.0)')
 
-# enable to search other paths for fonts
-mapnik.FontEngine.register_fonts("/usr/share/fonts/noto", True)
-mapnik.FontEngine.register_fonts("/usr/share/fonts/noto-cjk", True)
-mapnik.FontEngine.register_fonts("/usr/share/fonts/TTF", True)
+parser = argparse.ArgumentParser()
+parser.add_argument('rendercommand', nargs='?', default='hm-render-mapnik', \
+                    help='render command')
+parser.add_argument('renderoptions', nargs=argparse.REMAINDER, \
+                    help='render options, rendercommand is required when adding options')
+args = parser.parse_args()
 
-run_test(gpxfiles = [ "test1.gpx" ])
-run_test(gpxfiles = [ "test2.gpx" ])
-run_test(gpxfiles = [ "test3.gpx" ])
+#run_test(args, gpxfiles = [ "test1.gpx" ])
+run_test(args, gpxfiles = [ "test2.gpx" ])
+run_test(args, gpxfiles = [ "test3.gpx" ])
 

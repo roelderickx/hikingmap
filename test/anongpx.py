@@ -16,67 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, getopt, random
+import argparse, os, random
 from xml.dom import minidom
-
-class Parameters:
-    def __init__(self):
-        # default parameters
-        self.inputfile = ""
-        self.outputfile = ""
-        self.verbose = False
-
-
-    def __usage(self):
-        print("Usage: " + sys.argv[0] + " [OPTION]... inputfile outputfile\n"
-              "Anonimizes GPX file inputfile and writes the result to outputfile\n\n"
-              "  -v --verbose        Display extra information while processing\n"
-              "  -h --help           Display help and exit\n")
-
-
-    # returns True if parameters could be parsed successfully
-    def parse_commandline(self):
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "vh", [
-                "verbose",
-                "help"])
-        except getopt.GetoptError:
-            self.__usage()
-            return False
-        for opt, arg in opts:
-            if opt in ("-h", "--help"):
-                self.__usage()
-                return False
-            elif opt in ("-v", "--verbose"):
-                self.verbose = True
-
-        retval = True
-        try:
-            self.inputfile = args[0]
-            self.outputfile = args[1]
-        except:
-            print("Nothing to do!")
-            retval = False
-
-        if self.verbose:
-            print("Parameters:")
-            print("inputfile = " + self.inputfile)
-            print("outputfile = " + self.outputfile)
-
-        return retval
-
-
-    def log(self, message):
-        if self.verbose:
-            print(message)
-
-
 
 class Coordinate:
     def __init__(self, lon, lat):
         self.lon = lon
         self.lat = lat
-
 
 
 class GpxTrack:
@@ -111,7 +57,6 @@ class GpxTrack:
             trksegnode.appendChild(trkptnode)
 
 
-
 class GpxFile:
     def __init__(self, params):
         self.params = params
@@ -129,13 +74,15 @@ class GpxFile:
         trackname = str(elements[0].childNodes[0].nodeValue) \
                               if elements and elements[0].childNodes \
                               else "[unnamed]"
-        self.params.log("Found track %s" % trackname)
+        if params.verbose:
+            print("Found track %s" % trackname)
 
         track = GpxTrack(trackname)
         for coord in xmltrack.getElementsByTagName('trkpt'):
             track.add_coord(float(coord.attributes['lon'].value),
                             float(coord.attributes['lat'].value))
-        self.params.log("Added %d coordinates" % len(xmltrack.getElementsByTagName('trkpt')))
+        if params.verbose:
+            print("Added %d coordinates" % len(xmltrack.getElementsByTagName('trkpt')))
 
         self.tracks.append(track)
 
@@ -182,12 +129,14 @@ class GpxFile:
         f.close()
 
 
-
 # MAIN
 
-params = Parameters()
-if not params.parse_commandline():
-    sys.exit()
+parser = argparse.ArgumentParser(description = "Anonimizes GPX file inputfile and writes " + \
+                                               "the result to outputfile")
+parser.add_argument('inputfile', help="Input GPX file")
+parser.add_argument('outputfile', help="Anonimized output GPX file")
+parser.add_argument('-v', dest = 'verbose', action = 'store_true')
+params = parser.parse_args()
 
 gpxfile = GpxFile(params)
 gpxfile.anonimize()

@@ -23,8 +23,7 @@ earthCircumference = 40041.44 # km (average, equatorial 40075.017 km / meridiona
 cmToKmFactor = 100000.0
 
 def parse_commandline():
-    parser = argparse.ArgumentParser(\
-                        description = "Dummy render script")
+    parser = argparse.ArgumentParser(description = "Dummy render script")
     parser.add_argument('--pagewidth', dest = 'pagewidth', type = float, default = 20.0, \
                         help = "page width in cm")
     parser.add_argument('--pageheight', dest = 'pageheight', type = float, default = 28.7, \
