@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # runtest -- hikingmap integration test script
 # Copyright (C) 2019  Roel Derickx <roel.derickx AT gmail>
@@ -17,11 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse, sys, os
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from hikingmap_tracks import Tracks
-from hikingmap_trackfinder import TrackFinder
+from hikingmap.tracks import Tracks
+from hikingmap.trackfinder import TrackFinder
 
 def run_test(args, gpxfiles, scale = 50000, pagewidth = 20.0, pageheight = 28.7, \
              pageoverlap = 1.0, waypt_distance = 1, length_unit = "km", \

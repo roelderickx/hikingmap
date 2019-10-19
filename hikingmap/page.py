@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os, math, subprocess
-from hikingmap_coordinate import Coordinate
-from hikingmap_area import Area
+from hikingmap.coordinate import Coordinate
+from hikingmap.area import Area
 
 class Page(Area):
     orientation_unknown = 0
@@ -265,10 +265,6 @@ class Page(Area):
 
     def render(self, parameters, tempgpxfile, basefilename):
         args = [ parameters.rendercommand,
-                 "-o", str(self.minlon),
-                 "-a", str(self.minlat),
-                 "-O", str(self.maxlon),
-                 "-A", str(self.maxlat),
                  "--pagewidth", str(self.get_page_width()),
                  "--pageheight", str(self.get_page_height()),
                  "-b", basefilename ]
@@ -281,6 +277,9 @@ class Page(Area):
         if parameters.renderoptions:
             args = args + parameters.renderoptions
         args = args + [ os.path.abspath(f) for f in parameters.gpxfiles ]
+        args = args + [ "bbox",
+                        "-o", str(self.minlon), "-a", str(self.minlat),
+                        "-O", str(self.maxlon), "-A", str(self.maxlat) ]
         
         retval = True
         try:

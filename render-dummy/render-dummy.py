@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2019  Roel Derickx <roel.derickx AT gmail>

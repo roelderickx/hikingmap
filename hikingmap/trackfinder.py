@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -18,9 +18,9 @@
 
 import sys, os, math, itertools, tempfile
 from xml.dom import minidom
-from hikingmap_coordinate import Coordinate
-from hikingmap_area import Area
-from hikingmap_page import Page
+from hikingmap.coordinate import Coordinate
+from hikingmap.area import Area
+from hikingmap.page import Page
 
 # global constants
 max_tracks_perm_calc = 6

@@ -1,6 +1,20 @@
 # Hikingmap
 
-A python script to calculate the minimum amount of pages needed to render one or more GPX tracks. The calculated pages will be passed to a render script of your choice. For installation instructions and additional requirements please consult the documentation folder or visit [the hikingmap web page](https://roel.derickx.be/hikingmap/).
+A python script to calculate the minimum amount of pages needed to render one or more GPX tracks. The calculated pages will be passed to a render script of your choice.
+
+## Installation
+Hikingmap has no external dependencies, however you will need to install a renderer to do something useful with it. See below under the [Rendering](#rendering) section.
+
+### Using pip
+```bash
+pip install --upgrade hikingmap
+```
+
+### From source
+Clone this repository and run the following command in the created directory.
+```bash
+python setup.py install
+```
 
 ## Usage
 
@@ -15,14 +29,15 @@ Options:
 | `--pageheight` | The height of the resulting map in portrait orientation. The application will automatically use pagewidth when rendering in landscape orientation. The value should be the height of the desired papersize minus the vertical margins on both sides.
 | `--pageoverlap` | The amount of overlap between two consecutive pages, in cm.
 | `--overview` | Generate overview map
-| `-w, --waypoints` | If this parameter is given the cumulative distance from the origin will be rendered each N kilometers or miles.
+| `-w, --waypoints` | The cumulative distance from the origin will be rendered each N kilometers or miles. To disable this feature pass the value 0.
 | `-u, --unit` | Length unit in which the value of the waypoints parameter is expressed. Possible values are km or mi (default km).
 | `-o, --page-order` | Order in which pages are generated. Possible values are naturalorder, rectoverso or book (default naturalorder).
-| `-b, --basename` | Output filename base. All output file names will start with this parameter, followed by a sequence number and a file extension depending on the specified format.
-| `-r, --renderdir` | Directory containing the renderscript.
+| `-b, --basename` | Output filename. Hikingmap will append the page number and the extension.
 | `-v, --verbose` | Display extra information while processing.
 | `-h, --help` | Display help
-| `gpxfiles` | The GPX track(s) to follow. More than one GPX file can be given, the script will render all tracks given.
+| `--gpx` | One or more GPX track(s) to follow. This is the only mandatory parameter.
+| `rendercommand` | The render command, precede by -- when the previous parameter is --gpx
+| `renderoptions` | Additional render options you want to pass, consult the documentation of the renderer. The rendercommand parameter is mandatory if you want to pass its options.
 
 The hikingmap script will try to render the complete track on a minimum of pages. Because it is particularly hard for an algorithm to decide what should be on the map and what shouldn't, the following rules are implemented:
 * All tracks will be scanned and consecutive tracks will automatically be combined into a single track
@@ -31,5 +46,27 @@ The hikingmap script will try to render the complete track on a minimum of pages
 
 ## Rendering
 
-The actual rendering will be done by an external renderer (see the `-r` or `--renderdir` parameter). For more information on how to write your own render script or how to set up the default using the postgresql / mapnik toolchain, please consult the documentation.
+The actual rendering will be done by an external renderer (see the `rendercommand` and `renderoptions` parameters). Besides the dummy renderer included in this package, which only exists for debugging purposes or as a framework to write a new renderer, you have the choice between at least two renderers:
+
+* [hm-render-mapnik](https://github.com/roelderickx/hm-render-mapnik): this is the default renderer used by hikingmap. All map data will be stored offline and elevation lines are supported, however the setup is rather difficult.
+
+* [hm-render-landez](https://github.com/roelderickx/hm-render-landez): this is an alternative renderer which was initially written to be used with <a href="https://wiki.openstreetmap.org/wiki/MBTiles">MBTiles files</a>, but it can be configured to use a web based tile server as well. Please consult the documentation on the project page before use.
+
+You may opt to write your own renderer. You can start by copying the dummy renderer, the parsing of the parameters is already in place as well as the ability to pass a center point and a scale. Hikingmap will pass certain parameters, you are free to use or ignore them as you wish:
+
+| Parameter | Description
+| --------- | -----------
+| `--pagewidth` | The width of the page in cm
+| `--pageheight` | The height of the page in cm
+| `-b` | The output filename without extension, it is up to the renderer to add this
+| `-t` | Temp track file to render. This is used to draw the page boundaries of the overview map, hikingmap will save those as a temporary GPX file. This parameter is only passed when applicable.
+| `-y` | Temp waypoints file to render. This is used to render the distance each kilometer or mile, hikingmap will save those waypoints as a temporary GPX file. This parameter is only passed when applicable.
+| `-v` | Verbose mode, hikingmap will pass this parameter when it is in verbose mode itself.
+| `bbox` | This is the command to tell the renderer that the coordinates of the page boundaries will be passed in stead of the centerpoint and the scale
+| `-o` | Minimum longitude of the page boundaries.
+| `-a` | Minimum latitude of the page boundaries.
+| `-O` | Maximum longitude of the page boundaries.
+| `-A` | Minimum latitude of the page boundaries.
+
+Of course you are free to add more parameters to the renderer which can be passed using the `renderoptions` parameter of hikingmap, or to provide long options for the existing parameters to facilitate using the renderer standalone.
 

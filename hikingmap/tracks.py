@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -19,7 +19,7 @@
 
 import sys, os, tempfile, math
 from xml.dom import minidom
-from hikingmap_coordinate import Coordinate
+from hikingmap.coordinate import Coordinate
 
 class Tracks:
     def __init__(self, params):

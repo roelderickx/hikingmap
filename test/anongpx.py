@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # anongpx -- anonimize GPX files to avoid copyright issues when filing bug reports
 # Copyright (C) 2019  Roel Derickx <roel.derickx AT gmail>
