@@ -70,3 +70,11 @@ You may opt to write your own renderer. You can start by copying the dummy rende
 
 Of course you are free to add more parameters to the renderer which can be passed using the `renderoptions` parameter of hikingmap, or to provide long options for the existing parameters to facilitate using the renderer standalone.
 
+## Results
+
+Below you can find part of a rendered track. The maps were rendered on a 1:50000 scale for A4 paper size. It is included here only as an example to show how the track is rendered and how pages fit together.
+
+![alt text](https://github.com/roelderickx/hikingmap/example-output-thumb.png "Example output")
+
+Click [here](https://github.com/roelderickx/hikingmap/example-output.png) for a larger version.
+
