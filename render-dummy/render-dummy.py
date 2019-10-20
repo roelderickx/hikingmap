@@ -31,13 +31,14 @@ def parse_commandline():
     parser.add_argument('-b', '--basename', dest = 'basefilename', default = "detail", \
                         help = "base filename without extension")
     parser.add_argument('-t', dest = 'temptrackfile', \
-                        help = "Temp track file to render")
+                        help = "temp track file to render")
     parser.add_argument('-y', dest = 'tempwaypointfile', \
-                        help = "Temp waypoints file to render")
+                        help = "temp waypoints file to render")
     parser.add_argument('-v', dest = 'verbose', action = 'store_true')
     parser.add_argument('gpxfiles', nargs = '*')
 
-    subparsers = parser.add_subparsers(dest='mode', help='bounding box or center mode')
+    subparsers = parser.add_subparsers(dest='mode', required=True, \
+                                       help='bounding box or center mode')
 
     # create the parser for the bbox command
     parser_bbox = subparsers.add_parser('bbox', help='define bounding box')

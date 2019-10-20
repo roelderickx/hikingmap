@@ -14,7 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/roelderickx/hikingmap",
     packages=setuptools.find_packages(),
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     entry_points={
         'console_scripts': ['hikingmap = hikingmap.hikingmap:main']
     },
