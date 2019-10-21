@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     license='GNU General Public License (GNU GPL v3 or above)',
     author="Roel Derickx",
-    author_email="roel.derickx AT gmail",
+    author_email="hikingmap.pypi@derickx.be",
     description="A script to calculate the minimum amount of pages needed to render one or more GPX tracks",
     long_description=README,
     long_description_content_type="text/markdown",
