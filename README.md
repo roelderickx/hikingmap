@@ -18,7 +18,7 @@ python setup.py install
 
 ## Usage
 
-`hikingmap.py [OPTION]... gpxfiles...`
+`hikingmap [OPTION]... [rendercommand] [renderoptions]`
 
 Options:
 
@@ -52,15 +52,15 @@ The actual rendering will be done by an external renderer (see the `rendercomman
 
 * [hm-render-landez](https://github.com/roelderickx/hm-render-landez): this is an alternative renderer which was initially written to be used with <a href="https://wiki.openstreetmap.org/wiki/MBTiles">MBTiles files</a>, but it can be configured to use a web based tile server as well. Please consult the documentation on the project page before use.
 
-You may opt to write your own renderer. You can start by copying the dummy renderer, the parsing of the parameters is already in place as well as the ability to pass a center point and a scale. Hikingmap will pass certain parameters, you are free to use or ignore them as you wish:
+You may opt to write your own renderer. You can start by copying the dummy renderer, the parsing of the parameters is already in place as well as the ability to pass a center point and a scale. Hikingmap will pass the following parameters, you are free to use or ignore them as you wish:
 
 | Parameter | Description
 | --------- | -----------
 | `--pagewidth` | The width of the page in cm
 | `--pageheight` | The height of the page in cm
 | `-b` | The output filename without extension, it is up to the renderer to add this
-| `-t` | Temp track file to render. This is used to draw the page boundaries of the overview map, hikingmap will save those as a temporary GPX file. This parameter is only passed when applicable.
-| `-y` | Temp waypoints file to render. This is used to render the distance each kilometer or mile, hikingmap will save those waypoints as a temporary GPX file. This parameter is only passed when applicable.
+| `-t` | Temp track file to render, including the full path. This is used to draw the page boundaries of the overview map, hikingmap will save those as a temporary GPX file. This parameter is only passed when applicable.
+| `-y` | Temp waypoints file to render, including the full path. This is used to render the distance each kilometer or mile, hikingmap will save those waypoints as a temporary GPX file. This parameter is only passed when applicable.
 | `-v` | Verbose mode, hikingmap will pass this parameter when it is in verbose mode itself.
 | `bbox` | This is the command to tell the renderer that the coordinates of the page boundaries will be passed in stead of the centerpoint and the scale
 | `-o` | Minimum longitude of the page boundaries.
@@ -75,6 +75,4 @@ Of course you are free to add more parameters to the renderer which can be passe
 Below you can find part of a rendered track. The maps were rendered on a 1:50000 scale for A4 paper size. It is included here only as an example to show how the track is rendered and how pages fit together.
 
 ![Example output](https://github.com/roelderickx/hikingmap/blob/master/example-output-thumb.png)
-
-Click [here](https://github.com/roelderickx/hikingmap/blob/master/example-output.png) for a larger version.
 
