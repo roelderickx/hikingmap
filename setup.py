@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setuptools.setup(
     name="hikingmap",
-    version="0.0.1",
+    version="0.0.2",
     license='GNU General Public License (GNU GPL v3 or above)',
     author="Roel Derickx",
     author_email="hikingmap.pypi@derickx.be",
@@ -19,9 +19,12 @@ setuptools.setup(
         'console_scripts': ['hikingmap = hikingmap.hikingmap:main']
     },
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
-        "Operating System :: OS Independent",
+        'Environment :: Console',
+        'Topic :: Scientific/Engineering :: GIS',
+        'Development Status :: 6 - Mature',
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Operating System :: OS Independent',
     ],
 )
 
