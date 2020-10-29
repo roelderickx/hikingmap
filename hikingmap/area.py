@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os, math
-from hikingmap.coordinate import Coordinate
+from .coordinate import Coordinate
 
 # global constants
 earthCircumference = 40041.44 # km (average, equatorial 40075.017 km / meridional 40007.86 km)

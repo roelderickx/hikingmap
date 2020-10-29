@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-from hikingmap.tracks import Tracks
-from hikingmap.trackfinder import TrackFinder
+from .tracks import Tracks
+from .trackfinder import TrackFinder
 
 def parse_commandline():
     parser = argparse.ArgumentParser()
@@ -56,6 +56,7 @@ def parse_commandline():
                         help='render options, rendercommand is required when adding options')
     return parser.parse_args()
 
+
 def main():
     params = parse_commandline()
 
@@ -63,7 +64,4 @@ def main():
 
     trackfinder = TrackFinder(params, tracks)
     trackfinder.render()
-
-if __name__ == '__main__':
-    main()
 

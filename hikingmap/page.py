@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os, math, subprocess
-from hikingmap.coordinate import Coordinate
-from hikingmap.area import Area
+from .coordinate import Coordinate
+from .area import Area
 
 class Page(Area):
     orientation_unknown = 0
@@ -296,14 +296,16 @@ class Page(Area):
 
     
     def to_string(self):
-        mapname = "detail map " + str(self.pageindex)
-        if self.pageindex == 0:
-            mapname = "overview map"
         orientation_string = "portrait"
         if self.orientation == self.orientation_landscape:
             orientation_string = "landscape"
-        retval = mapname + " (" + orientation_string + "): " + super(Page, self).to_string()
+
         if self.pageindex == 0:
-            retval += ", scale = 1:" + str(round(self.scale))
+            retval = "overview map (%s): %s, scale = 1:%d" % \
+                    (orientation_string, super(Page, self).to_string(), round(self.scale))
+        else:
+            retval = "detail map %d (%s): %s" % \
+                    (self.pageindex, orientation_string, super(Page, self).to_string())
+
         return retval
 

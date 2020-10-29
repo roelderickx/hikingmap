@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -19,7 +19,7 @@
 
 import sys, os, tempfile, math
 from xml.dom import minidom
-from hikingmap.coordinate import Coordinate
+from .coordinate import Coordinate
 
 class Tracks:
     def __init__(self, params):
@@ -28,19 +28,19 @@ class Tracks:
         self.__parse_files(params.gpxfiles)
 
         if params.waypt_distance > 0:
-            self.__calculate_waypoints(params.waypt_distance, params.length_unit);
+            self.__calculate_waypoints(params.waypt_distance, params.length_unit)
 
 
     def __del__(self):
         # remove temp file
         if self.tempwaypointfile and os.path.isfile(self.tempwaypointfile):
-            print("Removing temp file " + self.tempwaypointfile)
+            print("Removing temp file %s" % self.tempwaypointfile)
             os.remove(self.tempwaypointfile)
 
 
     def __parse_files(self, gpxfiles):
         for gpxfile in gpxfiles:
-            print("Reading file " + gpxfile)
+            print("Reading file %s" % gpxfile)
 
             xmldoc = minidom.parse(gpxfile)
             xmltracklist = xmldoc.getElementsByTagName('trk')
@@ -54,7 +54,7 @@ class Tracks:
         trackname = str(elements[0].childNodes[0].nodeValue) \
                               if elements and elements[0].childNodes \
                               else "[unnamed]"
-        print("Found track " + trackname)
+        print("Found track %s" % trackname)
 
         track = list()
         for coord in xmltrack.getElementsByTagName('trkpt'):
@@ -66,29 +66,27 @@ class Tracks:
         foundtrack = False
         for foundindex, existingtrack in enumerate(self.tracks):
             if existingtrack[0].equals(track[0]):
-                print("=> same startpoint as track " + str(foundindex) + \
-                      ": reversing track")
+                print("=> same startpoint as track %d: reversing track" % foundindex)
                 track.reverse()
             elif existingtrack[-1].equals(track[-1]):
-                print("=> same endpoint as track " + str(foundindex) + \
-                      ": reversing track")
+                print("=> same endpoint as track %d: reversing track" % foundindex)
                 track.reverse()
 
             if existingtrack[-1].equals(track[0]):
-                print("=> connecting after track " + str(foundindex))
+                print("=> connecting after track %d" % foundindex)
                 newtrack = existingtrack + track[1:]
                 self.tracks[foundindex] = newtrack
                 foundtrack = True
                 break
             elif existingtrack[0].equals(track[-1]):
-                print("=> connecting before track " + str(foundindex))
+                print("=> connecting before track %d" % foundindex)
                 newtrack = track + existingtrack[1:]
                 self.tracks[foundindex] = newtrack
                 foundtrack = True
                 break
 
         if not foundtrack:
-            print("=> new track " + str(len(self.tracks)))
+            print("=> new track %d" % len(self.tracks))
             self.tracks.append(track)
 
 

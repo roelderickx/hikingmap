@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -68,7 +68,7 @@ class Coordinate:
             return 6371
 
 
-    # calculate distance in km between self and coord
+    # calculate distance in km or mi between self and coord
     def distance_haversine(self, coord, length_unit):
         dLat = coord.lat_radians - self.lat_radians
         dLon = coord.lon_radians - self.lon_radians
@@ -105,8 +105,8 @@ class Coordinate:
 
     def to_string(self):
         return str(round(self.lon, 6)) + "," + str(round(self.lat, 6))
-
-
+    
+    
     def append_to_xml_node(self, gpxnode, name):
         wayptnode = gpxnode.ownerDocument.createElement("wpt")
         wayptnode.setAttribute("lat", str(self.lat))

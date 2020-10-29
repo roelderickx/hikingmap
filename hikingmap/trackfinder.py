@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # hikingmap -- render maps on paper using data from OpenStreetMap
 # Copyright (C) 2015  Roel Derickx <roel.derickx AT gmail>
@@ -18,9 +18,9 @@
 
 import sys, os, math, itertools, tempfile
 from xml.dom import minidom
-from hikingmap.coordinate import Coordinate
-from hikingmap.area import Area
-from hikingmap.page import Page
+from .coordinate import Coordinate
+from .area import Area
+from .page import Page
 
 # global constants
 max_tracks_perm_calc = 6
@@ -79,7 +79,7 @@ class TrackFinder:
     def __del__(self):
         # remove temp file
         if self.tempoverviewfile and os.path.isfile(self.tempoverviewfile):
-            print("Removing temp file " + self.tempoverviewfile)
+            print("Removing temp file %s" % self.tempoverviewfile)
             os.remove(self.tempoverviewfile)
 
 
@@ -202,7 +202,7 @@ class TrackFinder:
             
             print("Page order is rectoverso, new order =", end="")
             for page in self.pages:
-                print(" " + str(page.get_page_index()), end="")
+                print(" %d" % page.get_page_index(), end="")
             print()
         elif self.parameters.page_order == "book":
             amount_empty_pages = (4 - (len(self.pages) % 4)) % 4
@@ -227,7 +227,7 @@ class TrackFinder:
             print("Page order is book, new order =", end="")
             for page in self.pages:
                 if page != None:
-                    print(" " + str(page.get_page_index()), end="")
+                    print(" %d" % page.get_page_index(), end="")
                 else:
                     print(" X", end="")
             print()
