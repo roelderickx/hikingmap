@@ -3,7 +3,7 @@
 A python script to calculate the minimum amount of pages needed to render one or more GPX tracks. The calculated pages will be passed to a render script of your choice.
 
 ## Installation
-Hikingmap has no external dependencies, however you will need to install a renderer to do something useful with it. See below under the [Rendering](#rendering) section.
+Hikingmap depends only on lxml but you will also need to install a renderer to do something useful with it. See below under the [Rendering](#rendering) section.
 
 ### Using pip
 ```bash

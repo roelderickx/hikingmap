@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os, math, itertools, tempfile
-from xml.dom import minidom
+from lxml import etree
 from .coordinate import Coordinate
 from .area import Area
 from .page import Page
@@ -147,22 +147,24 @@ class TrackFinder:
     
     
     def __add_page_overview(self):
-        overviewdoc = minidom.Document()
-        gpxnode = overviewdoc.createElement('gpx')
-        gpxnode.setAttribute("version", "1.0")
-        gpxnode.setAttribute("creator", "hikingmap")
-        gpxnode.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        gpxnode.setAttribute("xmlns", "http://www.topografix.com/GPX/1/0")
-        gpxnode.setAttribute("xsi:schemaLocation", \
-              "http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd")
-        
+        xsischemaloc_qname = \
+            etree.QName('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')
+        xsischemaloc_value = \
+            'http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd'
+        gpxattrs = { xsischemaloc_qname: xsischemaloc_value, \
+                     'version': '1.0', \
+                     'creator': 'hikingmap' }
+        gpxnamespace = { None: 'http://www.topografix.com/GPX/1/0', \
+                         'xsi': 'http://www.w3.org/2001/XMLSchema-instance' }
+        gpxnode = etree.Element('gpx', gpxattrs, nsmap=gpxnamespace)
+
         overviewpage = Page(self.parameters, 0)
 
         for page in self.pages:
             overviewpage.add_page_to_overview(page)
 
-            tracknode = gpxnode.ownerDocument.createElement("trk")
-            tracksegnode = gpxnode.ownerDocument.createElement("trkseg")
+            tracknode = etree.Element('trk')
+            tracksegnode = etree.Element('trkseg')
             for i in range(0, 5):
                 if i in [0, 3, 4]:
                     lon = page.minlon
@@ -172,19 +174,17 @@ class TrackFinder:
                     lat = page.maxlat
                 else:
                     lat = page.minlat
-                trackptnode = gpxnode.ownerDocument.createElement("trkpt")
-                trackptnode.setAttribute("lat", str(lat))
-                trackptnode.setAttribute("lon", str(lon))
-                tracksegnode.appendChild(trackptnode)
-            tracknode.appendChild(tracksegnode)
-            gpxnode.appendChild(tracknode)
+                trackpoint = Coordinate(lon, lat)
+                tracksegnode.append(trackpoint.to_xml('trkpt', None))
+            tracknode.append(tracksegnode)
+            gpxnode.append(tracknode)
                 
-        overviewdoc.appendChild(gpxnode)
+        gpxtree = etree.ElementTree(gpxnode)
         
         (fd, self.tempoverviewfile) = tempfile.mkstemp(prefix = "hikingmap_temp_overview", \
                                                        suffix = ".gpx")
-        f = os.fdopen(fd, 'w')
-        overviewdoc.writexml(f, "", "  ", "\n", "ISO-8859-1")
+        f = os.fdopen(fd, 'wb')
+        gpxtree.write(f, encoding='utf-8', xml_declaration=True)
         f.close()
         
         overviewpage.center_map()

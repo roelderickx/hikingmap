@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, math
-from xml.dom import minidom
+from lxml import etree
 
 class Coordinate:
     # lon and lat are coordinates, by default in degrees
@@ -107,13 +107,15 @@ class Coordinate:
         return str(round(self.lon, 6)) + "," + str(round(self.lat, 6))
     
     
-    def append_to_xml_node(self, gpxnode, name):
-        wayptnode = gpxnode.ownerDocument.createElement("wpt")
-        wayptnode.setAttribute("lat", str(self.lat))
-        wayptnode.setAttribute("lon", str(self.lon))
-        wayptnamenode = gpxnode.ownerDocument.createElement("name")
-        wayptnametext = gpxnode.ownerDocument.createTextNode(name)
-        wayptnamenode.appendChild(wayptnametext)
-        wayptnode.appendChild(wayptnamenode)
-        gpxnode.appendChild(wayptnode)
+    def to_xml(self, tagname, description):
+        wayptattrs = { 'lat':('%.15f' % self.lat), \
+                       'lon':('%.15f' % self.lon) }
+        wayptnode = etree.Element(tagname, wayptattrs)
+        
+        if description:
+            wayptnamenode = etree.Element('name')
+            wayptnamenode.text = description
+            wayptnode.append(wayptnamenode)
+        
+        return wayptnode
 

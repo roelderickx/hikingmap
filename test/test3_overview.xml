@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd" version="1.0" creator="hikingmap">
+  <trk>
+    <trkseg>
+      <trkpt lat="36.371174707434839" lon="0.201254754459722"/>
+      <trkpt lat="36.371174707434839" lon="0.312732245540278"/>
+      <trkpt lat="36.242158368362119" lon="0.312732245540278"/>
+      <trkpt lat="36.242158368362119" lon="0.201254754459722"/>
+      <trkpt lat="36.371174707434839" lon="0.201254754459722"/>
+    </trkseg>
+  </trk>
+  <trk>
+    <trkseg>
+      <trkpt lat="36.445788466146816" lon="0.109946040723081"/>
+      <trkpt lat="36.445788466146816" lon="0.270171891121929"/>
+      <trkpt lat="36.355881609650147" lon="0.270171891121929"/>
+      <trkpt lat="36.355881609650147" lon="0.109946040723081"/>
+      <trkpt lat="36.445788466146816" lon="0.109946040723081"/>
+    </trkseg>
+  </trk>
+  <trk>
+    <trkseg>
+      <trkpt lat="36.516486224858795" lon="-0.023655293535705"/>
+      <trkpt lat="36.516486224858795" lon="0.136694225380713"/>
+      <trkpt lat="36.426579368362127" lon="0.136694225380713"/>
+      <trkpt lat="36.426579368362127" lon="-0.023655293535705"/>
+      <trkpt lat="36.516486224858795" lon="-0.023655293535705"/>
+    </trkseg>
+  </trk>
+  <trk>
+    <trkseg>
+      <trkpt lat="36.618936966146812" lon="-0.031275422439283"/>
+      <trkpt lat="36.618936966146812" lon="0.080589422439278"/>
+      <trkpt lat="36.489920627074092" lon="0.080589422439278"/>
+      <trkpt lat="36.489920627074092" lon="-0.031275422439283"/>
+      <trkpt lat="36.618936966146812" lon="-0.031275422439283"/>
+    </trkseg>
+  </trk>
+</gpx>

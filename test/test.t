@@ -45,7 +45,7 @@ usage:
                           one or more GPX tracks
 
 test1:
-  $ hikingmap --debug -v -s 50000 --pagewidth 20.0 --pageheight 28.7 --pageoverlap 1.0 --overview -w 1 -u km -o naturalorder -b $TESTDIR/detail. --gpx $TESTDIR/test1.gpx -- $TESTDIR/../render-dummy/render-dummy.py
+  $ hikingmap --debug -v -s 50000 --pagewidth 20.0 --pageheight 28.7 --pageoverlap 1.0 --overview -w 1 -u km -o naturalorder -b $TESTDIR/detail. --gpx $TESTDIR/test1.gpx -- $TESTDIR/render-test.py
   Reading file /home/roel/hiking/hikingmap/test/test1.gpx
   Found track track 000
   => new track 0
@@ -127,9 +127,12 @@ test1:
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test1.gpx
   Removing temp file .*hikingmap_temp_waypoints.*.gpx (re)
   Removing temp file .*hikingmap_temp_overview.*.gpx (re)
+  $ xmllint --format $TESTDIR/tempoverviewfile.gpx | diff -uNr - $TESTDIR/test1_overview.xml
+  $ xmllint --format $TESTDIR/tempwaypointfile.gpx | diff -uNr - $TESTDIR/test1_waypoints.xml
+  $ rm -f $TESTDIR/tempoverviewfile.gpx $TESTDIR/tempwaypointfile.gpx
 
 test2:
-  $ hikingmap --debug -v -s 50000 --pagewidth 20.0 --pageheight 28.7 --pageoverlap 1.0 --overview -w 1 -u km -o naturalorder -b $TESTDIR/detail. --gpx $TESTDIR/test2.gpx -- $TESTDIR/../render-dummy/render-dummy.py
+  $ hikingmap --debug -v -s 50000 --pagewidth 20.0 --pageheight 28.7 --pageoverlap 1.0 --overview -w 1 -u km -o naturalorder -b $TESTDIR/detail. --gpx $TESTDIR/test2.gpx -- $TESTDIR/render-test.py
   Reading file /home/roel/hiking/hikingmap/test/test2.gpx
   Found track track 000
   => new track 0
@@ -292,9 +295,12 @@ test2:
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test2.gpx
   Removing temp file .*hikingmap_temp_waypoints.*.gpx (re)
   Removing temp file .*hikingmap_temp_overview.*.gpx (re)
+  $ xmllint --format $TESTDIR/tempoverviewfile.gpx | diff -uNr - $TESTDIR/test2_overview.xml
+  $ xmllint --format $TESTDIR/tempwaypointfile.gpx | diff -uNr - $TESTDIR/test2_waypoints.xml
+  $ rm -f $TESTDIR/tempoverviewfile.gpx $TESTDIR/tempwaypointfile.gpx
 
 test3:
-  $ hikingmap --debug -v -s 50000 --pagewidth 20.0 --pageheight 28.7 --pageoverlap 1.0 --overview -w 1 -u km -o naturalorder -b $TESTDIR/detail. --gpx $TESTDIR/test3.gpx -- $TESTDIR/../render-dummy/render-dummy.py
+  $ hikingmap --debug -v -s 50000 --pagewidth 20.0 --pageheight 28.7 --pageoverlap 1.0 --overview -w 1 -u km -o naturalorder -b $TESTDIR/detail. --gpx $TESTDIR/test3.gpx -- $TESTDIR/render-test.py
   Reading file /home/roel/hiking/hikingmap/test/test3.gpx
   Found track track 000
   => new track 0
@@ -355,4 +361,7 @@ test3:
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test3.gpx
   Removing temp file .*hikingmap_temp_waypoints.*.gpx (re)
   Removing temp file .*hikingmap_temp_overview.*.gpx (re)
+  $ xmllint --format $TESTDIR/tempoverviewfile.gpx | diff -uNr - $TESTDIR/test3_overview.xml
+  $ xmllint --format $TESTDIR/tempwaypointfile.gpx | diff -uNr - $TESTDIR/test3_waypoints.xml
+  $ rm -f $TESTDIR/tempoverviewfile.gpx $TESTDIR/tempwaypointfile.gpx
 

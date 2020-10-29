@@ -18,17 +18,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os, tempfile, math
-from xml.dom import minidom
+from lxml import etree
 from .coordinate import Coordinate
 
 class Tracks:
-    def __init__(self, params):
-        self.tempwaypointfile = ""
+    def __init__(self, gpxfiles):
         self.tracks = list()
-        self.__parse_files(params.gpxfiles)
-
-        if params.waypt_distance > 0:
-            self.__calculate_waypoints(params.waypt_distance, params.length_unit)
+        self.waypoints = list()
+        
+        self.tempwaypointfile = ""
+        self.__parse_files(gpxfiles)
 
 
     def __del__(self):
@@ -42,24 +41,22 @@ class Tracks:
         for gpxfile in gpxfiles:
             print("Reading file %s" % gpxfile)
 
-            xmldoc = minidom.parse(gpxfile)
-            xmltracklist = xmldoc.getElementsByTagName('trk')
+            gpxdoc = etree.parse(gpxfile)
+            gpxroot = gpxdoc.getroot()
 
-            for xmltrack in xmltracklist:
-                self.__parse_track(xmltrack)
+            for gpxtrack in gpxroot.findall('trk', namespaces=gpxroot.nsmap):
+                self.__parse_track(gpxtrack)
 
 
-    def __parse_track(self, xmltrack):
-        elements = xmltrack.getElementsByTagName('name')
-        trackname = str(elements[0].childNodes[0].nodeValue) \
-                              if elements and elements[0].childNodes \
-                              else "[unnamed]"
+    def __parse_track(self, gpxtrack):
+        namenode = gpxtrack.find('name', namespaces=gpxtrack.nsmap)
+        trackname = namenode.text if namenode is not None and namenode.text else "[unnamed]"
         print("Found track %s" % trackname)
 
         track = list()
-        for coord in xmltrack.getElementsByTagName('trkpt'):
-            track.append(Coordinate(float(coord.attributes['lon'].value),
-                                    float(coord.attributes['lat'].value)))
+        for coord in gpxtrack.findall('trkseg/trkpt', namespaces=gpxtrack.nsmap):
+            track.append(Coordinate(float(coord.get('lon')),
+                                    float(coord.get('lat'))))
 
         # search if track connects to existing track in tracks
         foundindex = 0
@@ -90,13 +87,32 @@ class Tracks:
             self.tracks.append(track)
 
 
+    def calculate_waypoints(self, waypt_distance, length_unit):
+        for (trackindex, track) in enumerate(self.tracks):
+            print("Generating waypoints for track %d: %s - %s" % \
+                        (trackindex, track[0].to_string(), track[-1].to_string()))
+            
+            track_waypoints = list()
+            cumulDistance = 0
+            prev_coord = track[0]
+            for coord in track:
+                cumulDistance = self.__add_waypoints(track_waypoints, prev_coord, coord, \
+                                                     cumulDistance, waypt_distance, length_unit)
+                prev_coord = coord
+
+            print("Total track distance: %.2f %s" % (cumulDistance, length_unit))
+            
+            self.waypoints.append(track_waypoints)
+    
+    
     # calculates all waypoints between coord1 and coord2
     # returns cumulative distance at coord2
-    def __write_wpt(self, gpxnode, coord1, coord2, cumul_dist_at_coord1, \
-                    waypt_distance, length_unit):
+    def __add_waypoints(self, track_waypoints, coord1, coord2, cumul_dist_at_coord1, \
+                        waypt_distance, length_unit):
         if coord1.equals(coord2):
             if cumul_dist_at_coord1 == 0:
-                coord1.append_to_xml_node(gpxnode, "0")
+                #coord1.append_to_xml_node(gpxnode, "0")
+                track_waypoints.append((coord1, "0"))
             return cumul_dist_at_coord1
         else:
             cumul_dist_at_coord2 = \
@@ -105,44 +121,33 @@ class Tracks:
                 if dist % waypt_distance == 0:
                     d = dist - cumul_dist_at_coord1
                     waypt = coord1.calc_waypoint_on_line(coord2, d, length_unit)
-                    waypt.append_to_xml_node(gpxnode, str(dist))
+                    #waypt.append_to_xml_node(gpxnode, str(dist))
+                    track_waypoints.append((waypt, str(dist)))
 
             return cumul_dist_at_coord2
 
 
-    def __generate_waypoints_track(self, gpxnode, track, waypt_distance, length_unit):
-        cumulDistance = 0
-        prev_coord = track[0]
-        for coord in track:
-            cumulDistance = self.__write_wpt(gpxnode, prev_coord, coord, \
-                                             cumulDistance, waypt_distance, length_unit)
-            prev_coord = coord
-
-        print("Total track distance: %.2f %s" % (cumulDistance, length_unit))
-
-
-    def __calculate_waypoints(self, waypt_distance, length_unit):
-        wayptdoc = minidom.Document()
-        gpxnode = wayptdoc.createElement('gpx')
-        gpxnode.setAttribute("version", "1.0")
-        gpxnode.setAttribute("creator", "hikingmap")
-        gpxnode.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        gpxnode.setAttribute("xmlns", "http://www.topografix.com/GPX/1/0")
-        gpxnode.setAttribute("xsi:schemaLocation", \
-              "http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd")
+    def write_waypoints_tempfile(self):
+        xsischemaloc_qname = \
+            etree.QName('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')
+        xsischemaloc_value = \
+            'http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd'
+        gpxattrs = { xsischemaloc_qname: xsischemaloc_value, \
+                     'version': '1.0', \
+                     'creator': 'hikingmap' }
+        gpxnamespace = { None: 'http://www.topografix.com/GPX/1/0', \
+                         'xsi': 'http://www.w3.org/2001/XMLSchema-instance' }
+        gpxnode = etree.Element('gpx', gpxattrs, nsmap=gpxnamespace)
         
-        index = 0
-        for track in self.tracks:
-            print("Generating waypoints for track " + str(index) + ": " + \
-                  track[0].to_string() + " - " + track[-1].to_string())
-            self.__generate_waypoints_track(gpxnode, track, waypt_distance, length_unit)
-            index += 1
-        
-        wayptdoc.appendChild(gpxnode)
+        for track_waypoints in self.waypoints:
+            for (waypoint, description) in track_waypoints:
+                gpxnode.append(waypoint.to_xml('wpt', description))
+
+        gpxtree = etree.ElementTree(gpxnode)
         
         (fd, self.tempwaypointfile) = tempfile.mkstemp(prefix = "hikingmap_temp_waypoints", \
                                                        suffix = ".gpx")
-        f = os.fdopen(fd, 'w')
-        wayptdoc.writexml(f, "", "  ", "\n", "ISO-8859-1")
+        f = os.fdopen(fd, 'wb')
+        gpxtree.write(f, encoding='utf-8', xml_declaration=True)
         f.close()
 

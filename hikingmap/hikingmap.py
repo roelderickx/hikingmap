@@ -60,7 +60,11 @@ def parse_commandline():
 def main():
     params = parse_commandline()
 
-    tracks = Tracks(params)
+    tracks = Tracks(params.gpxfiles)
+    
+    if params.waypt_distance > 0:
+        tracks.calculate_waypoints(params.waypt_distance, params.length_unit)
+        tracks.write_waypoints_tempfile()
 
     trackfinder = TrackFinder(params, tracks)
     trackfinder.render()
