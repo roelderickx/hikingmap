@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setuptools.setup(
     name="hikingmap",
-    version="0.0.2",
+    version="0.1.0",
     license='GNU General Public License (GNU GPL v3 or above)',
     author="Roel Derickx",
     author_email="hikingmap.pypi@derickx.be",
