@@ -26,12 +26,25 @@ from .page import Page
 max_tracks_perm_calc = 6
 
 class TrackFinder:
-    def __init__(self, parameters, tracks):
-        self.parameters = parameters
-        self.tempwaypointfile = tracks.tempwaypointfile
-        self.tempoverviewfile = ""
+    def __init__(self, scale, pagewidth, pageheight, pageoverlap, debugmode):
+        self.scale = scale
+        self.pagewidth = pagewidth
+        self.pageheight = pageheight
+        self.pageoverlap = pageoverlap
+        self.debugmode = debugmode
         self.pages = list()
-        
+        self.tempoverviewfile = None
+
+
+    def __del__(self):
+        # remove temp file
+        if self.tempoverviewfile is not None and os.path.isfile(self.tempoverviewfile):
+            print("Removing temp file %s" % self.tempoverviewfile)
+            os.remove(self.tempoverviewfile)
+
+
+    # Calculate the minimum amount of pages needed to render all tracks
+    def calculate_pages(self, tracks):
         allpermutations = [ tracks.tracks ]
         
         if len(tracks.tracks) <= max_tracks_perm_calc:
@@ -44,10 +57,10 @@ class TrackFinder:
             print("Too many tracks to calculate all track permutations")
         
         min_amount_pages = -1
-        for trackindex, trackpermutation in enumerate(allpermutations):
+        for permindex, trackpermutation in enumerate(allpermutations):
             self.renderedareas = list()
             self.currentpageindex = 1
-            self.currentpage = None #Page(parameters, self.currentpageindex)
+            self.currentpage = None
             self.firstpointaccepted = False
 
             try:
@@ -58,10 +71,11 @@ class TrackFinder:
                         prev_coord = self.__add_point(prev_coord, coord)
                     self.__flush()
             except:
-                if self.parameters.debugmode:
+                if self.debugmode:
                     track_order = [ t[0].to_string() for t in trackpermutation ]
                     print("Error while calculating permutation %d, track order = %s" % \
-                                (trackindex, " // ".join(track_order)))
+                                (permindex, " // ".join(track_order)))
+                    # TODO
                     self.__debug_exception()
                 raise
 
@@ -69,18 +83,6 @@ class TrackFinder:
                 min_amount_pages = len(self.renderedareas)
                 self.pages = self.renderedareas
                 print("Found track permutation with %d pages" % min_amount_pages)
-        
-        if self.parameters.generate_overview:
-            self.__add_page_overview()
-        
-        self.__reorder_pages()
-
-
-    def __del__(self):
-        # remove temp file
-        if self.tempoverviewfile and os.path.isfile(self.tempoverviewfile):
-            print("Removing temp file %s" % self.tempoverviewfile)
-            os.remove(self.tempoverviewfile)
 
 
     def __add_point(self, prev_coord, coord):
@@ -108,7 +110,9 @@ class TrackFinder:
 
 
     def __add_first_point(self, coord):
-        self.currentpage = Page(self.parameters, self.currentpageindex)
+        self.currentpage = Page(self.currentpageindex, \
+                                self.scale, self.pagewidth, self.pageheight, self.pageoverlap, \
+                                self.debugmode)
         self.currentpage.initialize_first_point(coord)
         self.currentpageindex += 1
         self.firstpointaccepted = True
@@ -134,19 +138,22 @@ class TrackFinder:
         return coord
 
 
-    def __debug_exception(self):
+    def __debug_exception(self, rendercommand, renderoptions, output_format, gpxfiles, verbose):
         # output already calculated areas
         for area in self.renderedareas:
             print(area.to_string())
         
         # render overview map for visualization
         self.pages = self.renderedareas
-        self.__add_page_overview()
-        self.pages[0].render(self.parameters, self.tempoverviewfile, \
-                             'debug_overview.' + self.parameters.output_format)
+        self.add_overview_page()
+        self.pages[0].render(rendercommand, renderoptions, \
+                             'debug_overview.' + output_format, \
+                             self.tempoverviewfile, gpxfiles, verbose)
     
     
-    def __add_page_overview(self):
+    # Add an overview page on index 0 and write a temporary gpx file with the page layout
+    # which will be deleted automatically in the destructor
+    def add_overview_page(self):
         xsischemaloc_qname = \
             etree.QName('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')
         xsischemaloc_value = \
@@ -158,7 +165,8 @@ class TrackFinder:
                          'xsi': 'http://www.w3.org/2001/XMLSchema-instance' }
         gpxnode = etree.Element('gpx', gpxattrs, nsmap=gpxnamespace)
 
-        overviewpage = Page(self.parameters, 0)
+        overviewpage = Page(0, self.scale, self.pagewidth, self.pageheight, self.pageoverlap, \
+                            self.debugmode)
 
         for page in self.pages:
             overviewpage.add_page_to_overview(page)
@@ -191,8 +199,9 @@ class TrackFinder:
         self.pages.insert(0, overviewpage)
 
 
-    def __reorder_pages(self):
-        if self.parameters.page_order == "rectoverso":
+    # Reorder the pages
+    def reorder_pages(self, page_order):
+        if page_order == "rectoverso":
             oldindex = math.floor(len(self.pages) / 2)
             newindex = 1
             while (oldindex < len(self.pages)):
@@ -204,7 +213,7 @@ class TrackFinder:
             for page in self.pages:
                 print(" %d" % page.get_page_index(), end="")
             print()
-        elif self.parameters.page_order == "book":
+        elif page_order == "book":
             amount_empty_pages = (4 - (len(self.pages) % 4)) % 4
             for i in range(0, amount_empty_pages):
                 self.pages.append(None)
@@ -234,20 +243,19 @@ class TrackFinder:
             print("WARNING: blank pages are not generated!")
         else:
             print("Page order is naturalorder")
-            pass
 
 
-    def render(self):
+    def render(self, rendercommand, renderoptions, output_basename, tempwaypointfile, gpxfiles, verbose):
         for page in self.pages:
             if page != None:
                 print(page.to_string())
                 
-                outfilename = \
-                    self.parameters.output_basename + \
-                    str(page.pageindex).zfill(len(str(len(self.pages))))
+                outfilename = output_basename + str(page.pageindex).zfill(len(str(len(self.pages))))
 
                 if page.pageindex == 0:
-                    page.render(self.parameters, self.tempoverviewfile, outfilename)
+                    page.render(rendercommand, renderoptions, outfilename, \
+                                self.tempoverviewfile, gpxfiles, verbose)
                 else:
-                    page.render(self.parameters, self.tempwaypointfile, outfilename)
+                    page.render(rendercommand, renderoptions, outfilename, \
+                                tempwaypointfile, gpxfiles, verbose)
 

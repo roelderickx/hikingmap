@@ -25,14 +25,14 @@ class Page(Area):
     orientation_portrait = 1
     orientation_landscape = 2
 
-    def __init__(self, parameters, pageindex):
+    def __init__(self, pageindex, scale, pagewidth, pageheight, pageoverlap, debugmode):
         super(Page, self).__init__(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
         self.pageindex = pageindex
-        self.debugmode = parameters.debugmode
-        self.scale = parameters.scale
-        self.pagewidth = parameters.pagewidth
-        self.pageheight = parameters.pageheight
-        self.pageoverlap = parameters.pageoverlap
+        self.scale = scale
+        self.pagewidth = pagewidth
+        self.pageheight = pageheight
+        self.pageoverlap = pageoverlap
+        self.debugmode = debugmode
         self.set_orientation(self.orientation_unknown)
         self.track_area = Area(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
         self.prev_track_area = Area(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
@@ -263,20 +263,20 @@ class Page(Area):
         self.maxlat = self.minlat + self.pagesizelat_full
 
 
-    def render(self, parameters, tempgpxfile, basefilename):
-        args = [ parameters.rendercommand,
+    def render(self, rendercommand, renderoptions, basefilename, tempgpxfile, gpxfiles, verbose):
+        args = [ rendercommand,
                  "--pagewidth", str(self.get_page_width()),
                  "--pageheight", str(self.get_page_height()),
                  "-b", basefilename ]
-        if self.pageindex == 0 and parameters.generate_overview:
+        if self.pageindex == 0 and tempgpxfile is not None:
             args = args + [ "-t", tempgpxfile ]
-        elif self.pageindex > 0 and parameters.waypt_distance > 0:
+        elif self.pageindex > 0 and tempgpxfile is not None:
             args = args + [ "-y", tempgpxfile ]
-        if parameters.verbose:
+        if verbose:
             args = args + [ "-v" ]
-        if parameters.renderoptions:
-            args = args + parameters.renderoptions
-        args = args + [ os.path.abspath(f) for f in parameters.gpxfiles ]
+        if renderoptions:
+            args = args + renderoptions
+        args = args + [ os.path.abspath(f) for f in gpxfiles ]
         args = args + [ "bbox",
                         "-o", str(self.minlon), "-a", str(self.minlat),
                         "-O", str(self.maxlon), "-A", str(self.maxlat) ]

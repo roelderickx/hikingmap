@@ -60,12 +60,25 @@ def parse_commandline():
 def main():
     params = parse_commandline()
 
-    tracks = Tracks(params.gpxfiles)
-    
+    # read tracks
+    tracks = Tracks()
+    tracks.parse_files(params.gpxfiles)
+
     if params.waypt_distance > 0:
         tracks.calculate_waypoints(params.waypt_distance, params.length_unit)
         tracks.write_waypoints_tempfile()
 
-    trackfinder = TrackFinder(params, tracks)
-    trackfinder.render()
+    # calculate pages
+    trackfinder = TrackFinder(params.scale, params.pagewidth, params.pageheight, params.pageoverlap, \
+                              params.debugmode)
+    trackfinder.calculate_pages(tracks)
+    
+    if params.generate_overview:
+        trackfinder.add_overview_page()
+    
+    trackfinder.reorder_pages(params.page_order)
+    
+    # render
+    trackfinder.render(params.rendercommand, params.renderoptions, params.output_basename, \
+                       tracks.tempwaypointfile, params.gpxfiles, params.verbose)
 

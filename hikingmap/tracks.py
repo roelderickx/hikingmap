@@ -22,22 +22,21 @@ from lxml import etree
 from .coordinate import Coordinate
 
 class Tracks:
-    def __init__(self, gpxfiles):
+    def __init__(self):
         self.tracks = list()
         self.waypoints = list()
-        
-        self.tempwaypointfile = ""
-        self.__parse_files(gpxfiles)
+        self.tempwaypointfile = None
 
 
     def __del__(self):
         # remove temp file
-        if self.tempwaypointfile and os.path.isfile(self.tempwaypointfile):
+        if self.tempwaypointfile is not None and os.path.isfile(self.tempwaypointfile):
             print("Removing temp file %s" % self.tempwaypointfile)
             os.remove(self.tempwaypointfile)
 
 
-    def __parse_files(self, gpxfiles):
+    # Read all tracks from a given list of gpx files and store them in memory
+    def parse_files(self, gpxfiles):
         for gpxfile in gpxfiles:
             print("Reading file %s" % gpxfile)
 
@@ -85,8 +84,9 @@ class Tracks:
         if not foundtrack:
             print("=> new track %d" % len(self.tracks))
             self.tracks.append(track)
-
-
+    
+    
+    # Calculate waypoints after each waypt_distance for every track
     def calculate_waypoints(self, waypt_distance, length_unit):
         for (trackindex, track) in enumerate(self.tracks):
             print("Generating waypoints for track %d: %s - %s" % \
@@ -105,13 +105,12 @@ class Tracks:
             self.waypoints.append(track_waypoints)
     
     
-    # calculates all waypoints between coord1 and coord2
+    # calculate all waypoints between coord1 and coord2 and append them to track_waypoints
     # returns cumulative distance at coord2
     def __add_waypoints(self, track_waypoints, coord1, coord2, cumul_dist_at_coord1, \
                         waypt_distance, length_unit):
         if coord1.equals(coord2):
             if cumul_dist_at_coord1 == 0:
-                #coord1.append_to_xml_node(gpxnode, "0")
                 track_waypoints.append((coord1, "0"))
             return cumul_dist_at_coord1
         else:
@@ -121,12 +120,12 @@ class Tracks:
                 if dist % waypt_distance == 0:
                     d = dist - cumul_dist_at_coord1
                     waypt = coord1.calc_waypoint_on_line(coord2, d, length_unit)
-                    #waypt.append_to_xml_node(gpxnode, str(dist))
                     track_waypoints.append((waypt, str(dist)))
 
             return cumul_dist_at_coord2
 
 
+    # Write all waypoints to a temporary gpx file which will be deleted automatically in the destructor
     def write_waypoints_tempfile(self):
         xsischemaloc_qname = \
             etree.QName('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')
