@@ -25,7 +25,9 @@ earthCircumference = 40041.44 # km (average, equatorial 40075.017 km / meridiona
 cmToKmFactor = 100000.0
 
 def parse_commandline():
-    parser = argparse.ArgumentParser(description = "Dummy render script")
+    parser = argparse.ArgumentParser(description = "Test render script")
+    parser.add_argument('--description', dest = 'description', default = "", \
+                        help = "Render description")
     parser.add_argument('--pagewidth', dest = 'pagewidth', type = float, default = 20.0, \
                         help = "page width in cm")
     parser.add_argument('--pageheight', dest = 'pageheight', type = float, default = 28.7, \
@@ -92,7 +94,9 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 parameters = parse_commandline()
 assure_bbox_mode(parameters)
 
-print("| Dummy rendering:")
+print("| Test rendering:")
+if parameters.description:
+    print("|   description %s" % parameters.description)
 print("|   bbox (%.6f %.6f - %.6f %.6f)" % (parameters.minlon, parameters.minlat, \
                                             parameters.maxlon, parameters.maxlat))
 print("|   pagesize %.1fcm x %.1fcm" % (parameters.pagewidth, parameters.pageheight))
