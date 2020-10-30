@@ -246,11 +246,11 @@ class TrackFinder:
 
 
     def render(self, rendercommand, renderoptions, output_basename, tempwaypointfile, gpxfiles, verbose):
-        for page in self.pages:
+        for (ordered_index, page) in enumerate(self.pages):
             if page != None:
                 print(page.to_string())
                 
-                outfilename = output_basename + str(page.pageindex).zfill(len(str(len(self.pages))))
+                outfilename = output_basename + str(ordered_index).zfill(len(str(len(self.pages))))
 
                 if page.pageindex == 0:
                     page.render(rendercommand, renderoptions, outfilename, \
