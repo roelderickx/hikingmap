@@ -73,28 +73,28 @@ nooverview:
   | Test rendering:
   |   bbox (0.201255 36.242158 - 0.312732 36.371175)
   |   pagesize 20.0cm x 28.7cm
-  |   filename /home/roel/hiking/hikingmap/test/detail.1.pdf
+  |   filename /home/roel/hiking/hikingmap/test/detail.0.pdf
   |   tempwaypointfile = .*hikingmap_temp_waypoints.*.gpx (re)
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test3.gpx
   detail map 2 (landscape): 0.109946,36.355882 - 0.270172,36.445788
   | Test rendering:
   |   bbox (0.109946 36.355882 - 0.270172 36.445788)
   |   pagesize 28.7cm x 20.0cm
-  |   filename /home/roel/hiking/hikingmap/test/detail.2.pdf
+  |   filename /home/roel/hiking/hikingmap/test/detail.1.pdf
   |   tempwaypointfile = .*hikingmap_temp_waypoints.*.gpx (re)
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test3.gpx
   detail map 3 (landscape): -0.023655,36.426579 - 0.136694,36.516486
   | Test rendering:
   |   bbox (-0.023655 36.426579 - 0.136694 36.516486)
   |   pagesize 28.7cm x 20.0cm
-  |   filename /home/roel/hiking/hikingmap/test/detail.3.pdf
+  |   filename /home/roel/hiking/hikingmap/test/detail.2.pdf
   |   tempwaypointfile = .*hikingmap_temp_waypoints.*.gpx (re)
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test3.gpx
   detail map 4 (portrait): -0.031275,36.489921 - 0.080589,36.618937
   | Test rendering:
   |   bbox (-0.031275 36.489921 - 0.080589 36.618937)
   |   pagesize 20.0cm x 28.7cm
-  |   filename /home/roel/hiking/hikingmap/test/detail.4.pdf
+  |   filename /home/roel/hiking/hikingmap/test/detail.3.pdf
   |   tempwaypointfile = .*hikingmap_temp_waypoints.*.gpx (re)
   |   gpxfiles = /home/roel/hiking/hikingmap/test/test3.gpx
   Removing temp file .*hikingmap_temp_waypoints.*.gpx (re)
