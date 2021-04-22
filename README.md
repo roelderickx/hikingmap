@@ -1,6 +1,6 @@
 # Hikingmap
 
-[![Test](https://github.com/roelderickx/hikingmap/actions/workflows/test.yml/badge.svg)](https://github.com/roelderickx/hikingmap/actions/workflows/test.yml)
+![license](https://img.shields.io/github/license/roelderickx/hikingmap) [![test](https://github.com/roelderickx/hikingmap/actions/workflows/test.yml/badge.svg)](https://github.com/roelderickx/hikingmap/actions/workflows/test.yml)
 
 A python script to calculate the minimum amount of pages needed to render one or more GPX tracks. The calculated pages will be passed to a render script of your choice.
 
