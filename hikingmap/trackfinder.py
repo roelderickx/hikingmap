@@ -16,14 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math, itertools, tempfile
+import sys
+import os
+import math
+import itertools
+import tempfile
 from lxml import etree
 from .coordinate import Coordinate
 from .area import Area
 from .page import Page
 
 # global constants
-max_tracks_perm_calc = 6
+MAX_TRACKS_PERM_CALC = 6
 
 class TrackFinder:
     def __init__(self, scale, pagewidth, pageheight, pageoverlap, debugmode):
@@ -46,16 +50,16 @@ class TrackFinder:
     # Calculate the minimum amount of pages needed to render all tracks
     def calculate_pages(self, tracks):
         allpermutations = [ tracks.tracks ]
-        
-        if len(tracks.tracks) <= max_tracks_perm_calc:
+
+        if len(tracks.tracks) <= MAX_TRACKS_PERM_CALC:
             print("Calculating track order permutation resulting in a minimum amount of pages")
             print("This may take a while, checking %d track permutations" % \
                         math.factorial(len(tracks.tracks)))
-            
+
             allpermutations = itertools.permutations(tracks.tracks)
         else:
             print("Too many tracks to calculate all track permutations")
-        
+
         min_amount_pages = -1
         for permindex, trackpermutation in enumerate(allpermutations):
             self.renderedareas = list()
@@ -120,7 +124,7 @@ class TrackFinder:
 
     def __add_next_point(self, prev_coord, coord):
         outside_page = self.currentpage.add_next_point(prev_coord, coord)
-        
+
         if outside_page:
             self.currentpage.remove_last_point()
             if not self.pointskipped:
@@ -133,7 +137,7 @@ class TrackFinder:
                 self.__add_next_point(border_coord, coord)
             else:
                 self.__add_first_point(coord)
-        
+
         return coord
 
 
@@ -141,7 +145,7 @@ class TrackFinder:
         # output already calculated areas
         for area in self.renderedareas:
             print(area.to_string())
-        
+
         # render overview map for visualization
         self.pages = self.renderedareas
         self.__add_overview_page('debug_overview.gpx')
@@ -152,14 +156,14 @@ class TrackFinder:
               (self.pagewidth, self.pageheight, \
                self.pages[0].minlon, self.pages[0].minlat, \
                self.pages[0].maxlon, self.pages[0].maxlat))
-    
-    
+
+
     # Add an overview page on index 0 and write a temporary gpx file with the page layout
     # which will be deleted automatically in the destructor
     def add_overview_page(self):
         self.__add_overview_page()
-    
-    
+
+
     def __add_overview_page(self, filename=None):
         xsischemaloc_qname = \
             etree.QName('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')
@@ -193,9 +197,9 @@ class TrackFinder:
                 tracksegnode.append(trackpoint.to_xml('trkpt', None))
             tracknode.append(tracksegnode)
             gpxnode.append(tracknode)
-                
+
         gpxtree = etree.ElementTree(gpxnode)
-        
+
         fd = None
         if filename is None:
             (fd, self.tempoverviewfile) = tempfile.mkstemp(prefix = "hikingmap_temp_overview", \
@@ -206,7 +210,7 @@ class TrackFinder:
         f = os.fdopen(fd, 'wb')
         gpxtree.write(f, encoding='utf-8', xml_declaration=True)
         f.close()
-        
+
         overviewpage.center_map()
         self.pages.insert(0, overviewpage)
 
@@ -216,11 +220,11 @@ class TrackFinder:
         if page_order == "rectoverso":
             oldindex = math.floor(len(self.pages) / 2)
             newindex = 1
-            while (oldindex < len(self.pages)):
+            while oldindex < len(self.pages):
                 self.pages.insert(newindex, self.pages.pop(oldindex))
                 oldindex += 1
                 newindex += 2
-            
+
             print("Page order is rectoverso, new order =", end="")
             for page in self.pages:
                 print(" %d" % page.get_page_index(), end="")
@@ -232,22 +236,22 @@ class TrackFinder:
 
             oldindex = len(self.pages) - 1
             newindex = 1
-            while (newindex < oldindex):
+            while newindex < oldindex:
                 self.pages.insert(newindex, self.pages.pop(oldindex))
                 newindex += 2
-            
+
             # this page order requires recto-verso printing over the short edge of the
             # paper
             oldindex = 0
             newindex = 1
-            while (oldindex < len(self.pages)):
+            while oldindex < len(self.pages):
                 self.pages.insert(newindex, self.pages.pop(oldindex))
                 oldindex += 4
                 newindex += 4
 
             print("Page order is book, new order =", end="")
             for page in self.pages:
-                if page != None:
+                if page is not None:
                     print(" %d" % page.get_page_index(), end="")
                 else:
                     print(" X", end="")
@@ -257,11 +261,12 @@ class TrackFinder:
             print("Page order is naturalorder")
 
 
-    def render(self, rendercommand, renderoptions, output_basename, tempwaypointfile, gpxfiles, verbose):
+    def render(self, rendercommand, renderoptions, output_basename, tempwaypointfile, \
+               gpxfiles, verbose):
         for (ordered_index, page) in enumerate(self.pages):
-            if page != None:
+            if page is not None:
                 print(page.to_string())
-                
+
                 outfilename = output_basename + str(ordered_index).zfill(len(str(len(self.pages))))
 
                 if page.pageindex == 0:
@@ -270,4 +275,3 @@ class TrackFinder:
                 else:
                     page.render(rendercommand, renderoptions, outfilename, \
                                 tempwaypointfile, gpxfiles, verbose)
-

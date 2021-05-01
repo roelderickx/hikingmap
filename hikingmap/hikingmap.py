@@ -69,16 +69,15 @@ def main():
         tracks.write_waypoints_tempfile()
 
     # calculate pages
-    trackfinder = TrackFinder(params.scale, params.pagewidth, params.pageheight, params.pageoverlap, \
-                              params.debugmode)
+    trackfinder = TrackFinder(params.scale, params.pagewidth, params.pageheight, \
+                              params.pageoverlap, params.debugmode)
     trackfinder.calculate_pages(tracks)
-    
+
     if params.generate_overview:
         trackfinder.add_overview_page()
-    
+
     trackfinder.reorder_pages(params.page_order)
-    
+
     # render
     trackfinder.render(params.rendercommand, params.renderoptions, params.output_basename, \
                        tracks.tempwaypointfile, params.gpxfiles, params.verbose)
-

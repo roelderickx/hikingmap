@@ -16,7 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math, subprocess
+import sys
+import os
+import math
+import subprocess
 from .coordinate import Coordinate
 from .area import Area
 
@@ -26,7 +29,7 @@ class Page(Area):
     orientation_landscape = 2
 
     def __init__(self, pageindex, scale, pagewidth, pageheight, pageoverlap, debugmode):
-        super(Page, self).__init__(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
+        super().__init__(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
         self.pageindex = pageindex
         self.scale = scale
         self.pagewidth = pagewidth
@@ -64,15 +67,15 @@ class Page(Area):
 
     def get_page_index(self):
         return self.pageindex
-    
-    
+
+
     def set_page_area(self, area):
         self.minlon = area.minlon
         self.minlat = area.minlat
         self.maxlon = area.maxlon
         self.maxlat = area.maxlat
-    
-    
+
+
     def set_orientation(self, orientation):
         self.orientation = orientation
         self.pagesizelon = \
@@ -117,12 +120,12 @@ class Page(Area):
             self.track_area.maxlat = coord.lat
             self.minlat = self.track_area.minlat
             self.maxlat = self.minlat + self.pagesizelat
-    
-    
+
+
     def __track_area_outside_page(self):
         lon_outside = max(self.track_area.sizelon() - self.pagesizelon, 0)
         lat_outside = max(self.track_area.sizelat() - self.pagesizelat, 0)
-        
+
         return lon_outside * self.track_area.sizelat() + \
                lat_outside * self.track_area.sizelon() - \
                lon_outside * lat_outside
@@ -140,7 +143,7 @@ class Page(Area):
             portrait_excess = self.__track_area_outside_page()
             self.set_orientation(self.orientation_landscape)
             landscape_excess = self.__track_area_outside_page()
-            
+
             if portrait_excess == 0 and landscape_excess == 0:
                 self.set_orientation(self.orientation_unknown)
             elif portrait_excess < landscape_excess:
@@ -157,8 +160,8 @@ class Page(Area):
 
     def remove_last_point(self):
         self.track_area = self.prev_track_area
-    
-    
+
+
     def __calc_intersection_lon(self, l_start, l_end, lon):
         if l_start.lon == l_end.lon:
             return None
@@ -166,8 +169,8 @@ class Page(Area):
             return Coordinate(lon, \
                               (l_end.lat - l_start.lat) / (l_end.lon - l_start.lon) * \
                               (lon - l_start.lon) + l_start.lat)
-    
-    
+
+
     def __calc_intersection_lat(self, l_start, l_end, lat):
         if l_start.lat == l_end.lat:
             return None
@@ -205,18 +208,18 @@ class Page(Area):
         intersect_coord = None
         if coord.lon <= self.minlon <= prev_coord.lon:
             intersect_coord = self.__calc_intersection_lon(coord, prev_coord, self.minlon)
-        if intersect_coord == None and prev_coord.lon <= self.maxlon <= coord.lon:
+        if intersect_coord is None and prev_coord.lon <= self.maxlon <= coord.lon:
             intersect_coord = self.__calc_intersection_lon(prev_coord, coord, self.maxlon)
-        if intersect_coord == None and coord.lat <= self.minlat <= prev_coord.lat:
+        if intersect_coord is None and coord.lat <= self.minlat <= prev_coord.lat:
             intersect_coord = self.__calc_intersection_lat(coord, prev_coord, self.minlat)
-        if intersect_coord == None and prev_coord.lat <= self.maxlat <= coord.lat:
+        if intersect_coord is None and prev_coord.lat <= self.maxlat <= coord.lat:
             intersect_coord = self.__calc_intersection_lat(prev_coord, coord, self.maxlat)
 
         if self.debugmode:
             # assert valid result
-            if intersect_coord == None:
+            if intersect_coord is None:
                 self.__raise_calc_border_error("no intersection found!", prev_coord, coord)
-        
+
         return intersect_coord
 
 
@@ -229,14 +232,14 @@ class Page(Area):
             self.track_area.minlat = page.minlat
         if page.pageindex == 1 or page.maxlat > self.track_area.maxlat:
             self.track_area.maxlat = page.maxlat
-        
+
         # recalculate orientation
         if self.track_area.maxlon - self.track_area.minlon < \
                         self.track_area.maxlat - self.track_area.minlat:
             self.set_orientation(self.orientation_portrait)
         else:
             self.set_orientation(self.orientation_landscape)
-        
+
         # recalculate scale
         delta_lon = self.track_area.maxlon - self.track_area.minlon
         scale_lon = self._convert_degrees_lon_to_cm(delta_lon, self.track_area.minlat) \
@@ -250,7 +253,7 @@ class Page(Area):
     def center_map(self):
         # set minlat to calculate pagesizelon correctly
         self.minlat = self.track_area.minlat
-        
+
         # recalculate pagesizelon and pagesizelat
         self.set_orientation(self.orientation)
 
@@ -280,7 +283,7 @@ class Page(Area):
         args = args + [ "bbox",
                         "-o", str(self.minlon), "-a", str(self.minlat),
                         "-O", str(self.maxlon), "-A", str(self.maxlat) ]
-        
+
         retval = True
         try:
             process = subprocess.run(args, \
@@ -291,10 +294,10 @@ class Page(Area):
             print(process.stdout, end = '')
         except subprocess.CalledProcessError as e:
             retval = False
-        
+
         return retval
 
-    
+
     def to_string(self):
         orientation_string = "portrait"
         if self.orientation == self.orientation_landscape:
@@ -302,10 +305,9 @@ class Page(Area):
 
         if self.pageindex == 0:
             retval = "overview map (%s): %s, scale = 1:%d" % \
-                    (orientation_string, super(Page, self).to_string(), round(self.scale))
+                    (orientation_string, super().to_string(), round(self.scale))
         else:
             retval = "detail map %d (%s): %s" % \
-                    (self.pageindex, orientation_string, super(Page, self).to_string())
+                    (self.pageindex, orientation_string, super().to_string())
 
         return retval
-

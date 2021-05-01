@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, math
+import math
 from .coordinate import Coordinate
 
 # global constants
-earthCircumference = 40041.44 # km (average, equatorial 40075.017 km / meridional 40007.86 km)
-cmToKmFactor = 100000.0
+EARTH_CIRCUMFERENCE = 40041.44 # km (average, equatorial 40075.017 km / meridional 40007.86 km)
+CM_TO_KM_FACTOR = 100000.0
 
-class Area(object):
+class Area:
     def __init__(self, min_coord, max_coord):
         self.minlon = min_coord.lon
         self.minlat = min_coord.lat
@@ -31,30 +31,27 @@ class Area(object):
         self.maxlat = max_coord.lat
 
 
-    def __copy__(self, area):
-        self.minlon = area.minlon
-        self.minlat = area.minlat
-        self.maxlon = area.maxlon
-        self.maxlat = area.maxlat
+    def __copy__(self):
+        return Area(Coordinate(self.minlon, self.minlat), Coordinate(self.maxlon, self.maxlat))
 
 
     def _convert_cm_to_degrees_lon(self, lengthcm, scale, latitude):
-        lengthkm = lengthcm / cmToKmFactor * scale
-        return lengthkm / ((earthCircumference / 360.0) * math.cos(math.radians(latitude)))
+        lengthkm = lengthcm / CM_TO_KM_FACTOR * scale
+        return lengthkm / ((EARTH_CIRCUMFERENCE / 360.0) * math.cos(math.radians(latitude)))
 
 
     def _convert_cm_to_degrees_lat(self, lengthcm, scale):
-        lengthkm = lengthcm / cmToKmFactor * scale
-        return lengthkm / (earthCircumference / 360.0)
+        lengthkm = lengthcm / CM_TO_KM_FACTOR * scale
+        return lengthkm / (EARTH_CIRCUMFERENCE / 360.0)
 
 
     def _convert_degrees_lon_to_cm(self, delta_lon, latitude):
-        return delta_lon * (earthCircumference / 360.0) * \
-                       math.cos(math.radians(latitude)) * cmToKmFactor
+        return delta_lon * (EARTH_CIRCUMFERENCE / 360.0) * \
+                       math.cos(math.radians(latitude)) * CM_TO_KM_FACTOR
 
 
     def _convert_degrees_lat_to_cm(self, delta_lat):
-        return delta_lat * (earthCircumference / 360.0) * cmToKmFactor
+        return delta_lat * (EARTH_CIRCUMFERENCE / 360.0) * CM_TO_KM_FACTOR
 
 
     def sizelon(self):
@@ -68,4 +65,3 @@ class Area(object):
     def to_string(self):
         return Coordinate(self.minlon, self.minlat).to_string() + " - " + \
                Coordinate(self.maxlon, self.maxlat).to_string()
-

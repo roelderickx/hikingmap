@@ -3,4 +3,3 @@
 from .hikingmap import main
 
 main()
-

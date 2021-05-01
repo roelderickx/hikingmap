@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, tempfile, math
+import os
+import tempfile
 from lxml import etree
 from .coordinate import Coordinate
 
@@ -84,27 +85,27 @@ class Tracks:
         if not foundtrack:
             print("=> new track %d" % len(self.tracks))
             self.tracks.append(track)
-    
-    
+
+
     # Calculate waypoints after each waypt_distance for every track
     def calculate_waypoints(self, waypt_distance, length_unit):
         for (trackindex, track) in enumerate(self.tracks):
             print("Generating waypoints for track %d: %s - %s" % \
                         (trackindex, track[0].to_string(), track[-1].to_string()))
-            
+
             track_waypoints = list()
-            cumulDistance = 0
+            cumul_distance = 0
             prev_coord = track[0]
             for coord in track:
-                cumulDistance = self.__add_waypoints(track_waypoints, prev_coord, coord, \
-                                                     cumulDistance, waypt_distance, length_unit)
+                cumul_distance = self.__add_waypoints(track_waypoints, prev_coord, coord, \
+                                                      cumul_distance, waypt_distance, length_unit)
                 prev_coord = coord
 
-            print("Total track distance: %.2f %s" % (cumulDistance, length_unit))
-            
+            print("Total track distance: %.2f %s" % (cumul_distance, length_unit))
+
             self.waypoints.append(track_waypoints)
-    
-    
+
+
     # calculate all waypoints between coord1 and coord2 and append them to track_waypoints
     # returns cumulative distance at coord2
     def __add_waypoints(self, track_waypoints, coord1, coord2, cumul_dist_at_coord1, \
@@ -137,16 +138,15 @@ class Tracks:
         gpxnamespace = { None: 'http://www.topografix.com/GPX/1/0', \
                          'xsi': 'http://www.w3.org/2001/XMLSchema-instance' }
         gpxnode = etree.Element('gpx', gpxattrs, nsmap=gpxnamespace)
-        
+
         for track_waypoints in self.waypoints:
             for (waypoint, description) in track_waypoints:
                 gpxnode.append(waypoint.to_xml('wpt', description))
 
         gpxtree = etree.ElementTree(gpxnode)
-        
+
         (fd, self.tempwaypointfile) = tempfile.mkstemp(prefix = "hikingmap_temp_waypoints", \
                                                        suffix = ".gpx")
         f = os.fdopen(fd, 'wb')
         gpxtree.write(f, encoding='utf-8', xml_declaration=True)
         f.close()
-
