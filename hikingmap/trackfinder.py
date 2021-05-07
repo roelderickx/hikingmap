@@ -16,14 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import os
 import math
 import itertools
 import tempfile
 from lxml import etree
 from .coordinate import Coordinate
-from .area import Area
 from .page import Page
 
 # global constants
@@ -38,6 +36,12 @@ class TrackFinder:
         self.debugmode = debugmode
         self.pages = list()
         self.tempoverviewfile = None
+
+        self.__renderedareas = list()
+        self.__currentpageindex = 1
+        self.__currentpage = None
+        self.__firstpointaccepted = False
+        self.__pointskipped = True
 
 
     def __del__(self):
@@ -62,14 +66,14 @@ class TrackFinder:
 
         min_amount_pages = -1
         for permindex, trackpermutation in enumerate(allpermutations):
-            self.renderedareas = list()
-            self.currentpageindex = 1
-            self.currentpage = None
-            self.firstpointaccepted = False
+            self.__renderedareas = list()
+            self.__currentpageindex = 1
+            self.__currentpage = None
+            self.__firstpointaccepted = False
 
             try:
                 for track in trackpermutation:
-                    self.pointskipped = True
+                    self.__pointskipped = True
                     prev_coord = Coordinate(0.0, 0.0)
                     for coord in track:
                         prev_coord = self.__add_point(prev_coord, coord)
@@ -82,57 +86,57 @@ class TrackFinder:
                     self.__debug_exception()
                 raise
 
-            if min_amount_pages == -1 or len(self.renderedareas) < min_amount_pages:
-                min_amount_pages = len(self.renderedareas)
-                self.pages = self.renderedareas
+            if min_amount_pages == -1 or len(self.__renderedareas) < min_amount_pages:
+                min_amount_pages = len(self.__renderedareas)
+                self.pages = self.__renderedareas
                 print("Found track permutation with %d pages" % min_amount_pages)
 
 
     def __add_point(self, prev_coord, coord):
         if not self.__is_point_rendered(coord):
-            if not self.firstpointaccepted:
+            if not self.__firstpointaccepted:
                 prev_coord = self.__add_first_point(coord)
             else:
                 prev_coord = self.__add_next_point(prev_coord, coord)
-            self.pointskipped = False
+            self.__pointskipped = False
         else:
-            self.pointskipped = True
+            self.__pointskipped = True
         return prev_coord
 
 
     def __flush(self):
-        if self.firstpointaccepted:
-            self.currentpage.center_map()
-            self.renderedareas.append(self.currentpage)
-            self.firstpointaccepted = False
+        if self.__firstpointaccepted:
+            self.__currentpage.center_map()
+            self.__renderedareas.append(self.__currentpage)
+            self.__firstpointaccepted = False
 
 
     def __is_point_rendered(self, coord):
         return any(a.minlon <= coord.lon <= a.maxlon and \
-                   a.minlat <= coord.lat <= a.maxlat for a in self.renderedareas)
+                   a.minlat <= coord.lat <= a.maxlat for a in self.__renderedareas)
 
 
     def __add_first_point(self, coord):
-        self.currentpage = Page(self.currentpageindex, \
-                                self.scale, self.pagewidth, self.pageheight, self.pageoverlap, \
-                                self.debugmode)
-        self.currentpage.initialize_first_point(coord)
-        self.currentpageindex += 1
-        self.firstpointaccepted = True
+        self.__currentpage = Page(self.__currentpageindex, \
+                                  self.scale, self.pagewidth, self.pageheight, self.pageoverlap, \
+                                  self.debugmode)
+        self.__currentpage.initialize_first_point(coord)
+        self.__currentpageindex += 1
+        self.__firstpointaccepted = True
         return coord
 
 
     def __add_next_point(self, prev_coord, coord):
-        outside_page = self.currentpage.add_next_point(prev_coord, coord)
+        outside_page = self.__currentpage.add_next_point(coord)
 
         if outside_page:
-            self.currentpage.remove_last_point()
-            if not self.pointskipped:
-                border_coord = self.currentpage.calc_border_point(prev_coord, coord)
-                self.currentpage.add_next_point(prev_coord, border_coord)
-            self.currentpage.center_map()
-            self.renderedareas.append(self.currentpage)
-            if not self.pointskipped:
+            self.__currentpage.remove_last_point()
+            if not self.__pointskipped:
+                border_coord = self.__currentpage.calc_border_point(prev_coord, coord)
+                self.__currentpage.add_next_point(border_coord)
+            self.__currentpage.center_map()
+            self.__renderedareas.append(self.__currentpage)
+            if not self.__pointskipped:
                 self.__add_first_point(border_coord)
                 self.__add_next_point(border_coord, coord)
             else:
@@ -143,11 +147,11 @@ class TrackFinder:
 
     def __debug_exception(self):
         # output already calculated areas
-        for area in self.renderedareas:
+        for area in self.__renderedareas:
             print(area.to_string())
 
         # render overview map for visualization
-        self.pages = self.renderedareas
+        self.pages = self.__renderedareas
         self.__add_overview_page('debug_overview.gpx')
         print("A debug overview map can be generated by running:")
         print(("[rendercommand] --pagewidth %.2f --pageheight %.2f -b debug_overview " + \

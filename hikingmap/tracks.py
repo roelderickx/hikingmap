@@ -36,8 +36,10 @@ class Tracks:
             os.remove(self.tempwaypointfile)
 
 
-    # Read all tracks from a given list of gpx files and store them in memory
     def parse_files(self, gpxfiles):
+        '''
+        Read all tracks from a given list of gpx files and store them in memory
+        '''
         for gpxfile in gpxfiles:
             print("Reading file %s" % gpxfile)
 
@@ -87,8 +89,10 @@ class Tracks:
             self.tracks.append(track)
 
 
-    # Calculate waypoints after each waypt_distance for every track
     def calculate_waypoints(self, waypt_distance, length_unit):
+        '''
+        Calculate waypoints after each waypt_distance for every track
+        '''
         for (trackindex, track) in enumerate(self.tracks):
             print("Generating waypoints for track %d: %s - %s" % \
                         (trackindex, track[0].to_string(), track[-1].to_string()))
@@ -106,10 +110,12 @@ class Tracks:
             self.waypoints.append(track_waypoints)
 
 
-    # calculate all waypoints between coord1 and coord2 and append them to track_waypoints
-    # returns cumulative distance at coord2
     def __add_waypoints(self, track_waypoints, coord1, coord2, cumul_dist_at_coord1, \
                         waypt_distance, length_unit):
+        '''
+        Calculates all waypoints between coord1 and coord2 and append them to track_waypoints
+        Returns cumulative distance at coord2
+        '''
         if coord1.equals(coord2):
             if cumul_dist_at_coord1 == 0:
                 track_waypoints.append((coord1, "0"))
@@ -126,8 +132,11 @@ class Tracks:
             return cumul_dist_at_coord2
 
 
-    # Write all waypoints to a temporary gpx file which will be deleted automatically in the destructor
     def write_waypoints_tempfile(self):
+        '''
+        Write all waypoints to a temporary gpx file which will be deleted
+        automatically in the destructor
+        '''
         xsischemaloc_qname = \
             etree.QName('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')
         xsischemaloc_value = \

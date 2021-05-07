@@ -60,15 +60,18 @@ class Coordinate:
         return math.atan2(y, x)
 
 
-    def __get_earth_radius(self, length_unit):
+    @staticmethod
+    def __get_earth_radius(length_unit):
         if length_unit == "mi":
             return 3959
         else: # default to km
             return 6371
 
 
-    # calculate distance in km or mi between self and coord
     def distance_haversine(self, coord, length_unit):
+        '''
+        Calculates distance in km or mi between self and coord
+        '''
         d_lat = coord.lat_radians - self.lat_radians
         d_lon = coord.lon_radians - self.lon_radians
 
@@ -80,9 +83,11 @@ class Coordinate:
         return self.__get_earth_radius(length_unit) * c
 
 
-    # returns the coordinate of the point which is on a given distance
-    # from self in the direction of dest_coord
     def calc_waypoint_on_line(self, dest_coord, distance, length_unit):
+        '''
+        Returns the coordinate of the point which is on a given distance
+        from self in the direction of dest_coord
+        '''
         b = self.bearing(dest_coord)
         earth_radius = self.__get_earth_radius(length_unit)
         return Coordinate(#lon

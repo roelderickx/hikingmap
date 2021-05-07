@@ -16,9 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import os
-import math
 import subprocess
 from .coordinate import Coordinate
 from .area import Area
@@ -41,14 +39,13 @@ class Page(Area):
         self.prev_track_area = Area(Coordinate(0.0, 0.0), Coordinate(0.0, 0.0))
 
 
-    def __copy__(self, page):
-        self.set_page_area(page)
-        self.debugmode = page.debugmode
-        self.scale = page.scale
-        self.pagewidth = page.pagewidth
-        self.pageheight = page.pageheight
-        self.pageoverlap = page.pageoverlap
-        self.set_orientation(page.orientation)
+    def __copy__(self):
+        page = Page(self.pageindex, self.scale, \
+                    self.pagewidth, self.pageheight, self.pageoverlap, self.debugmode)
+        page.set_page_area(self)
+        page.set_orientation(self.orientation)
+
+        return page
 
 
     def get_page_width(self):
@@ -132,7 +129,7 @@ class Page(Area):
 
 
     # recalculates page area needed to add new coordinate
-    def add_next_point(self, prev_coord, coord):
+    def add_next_point(self, coord):
         self.__add_point_to_track_area(coord)
 
         # does the track exceed the page boundary?
@@ -162,7 +159,8 @@ class Page(Area):
         self.track_area = self.prev_track_area
 
 
-    def __calc_intersection_lon(self, l_start, l_end, lon):
+    @staticmethod
+    def __calc_intersection_lon(l_start, l_end, lon):
         if l_start.lon == l_end.lon:
             return None
         else:
@@ -171,7 +169,8 @@ class Page(Area):
                               (lon - l_start.lon) + l_start.lat)
 
 
-    def __calc_intersection_lat(self, l_start, l_end, lat):
+    @staticmethod
+    def __calc_intersection_lat(l_start, l_end, lat):
         if l_start.lat == l_end.lat:
             return None
         else:
@@ -292,7 +291,7 @@ class Page(Area):
                                      universal_newlines = True)
             process.check_returncode()
             print(process.stdout, end = '')
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             retval = False
 
         return retval

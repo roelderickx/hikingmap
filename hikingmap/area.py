@@ -35,22 +35,26 @@ class Area:
         return Area(Coordinate(self.minlon, self.minlat), Coordinate(self.maxlon, self.maxlat))
 
 
-    def _convert_cm_to_degrees_lon(self, lengthcm, scale, latitude):
+    @staticmethod
+    def _convert_cm_to_degrees_lon(lengthcm, scale, latitude):
         lengthkm = lengthcm / CM_TO_KM_FACTOR * scale
         return lengthkm / ((EARTH_CIRCUMFERENCE / 360.0) * math.cos(math.radians(latitude)))
 
 
-    def _convert_cm_to_degrees_lat(self, lengthcm, scale):
+    @staticmethod
+    def _convert_cm_to_degrees_lat(lengthcm, scale):
         lengthkm = lengthcm / CM_TO_KM_FACTOR * scale
         return lengthkm / (EARTH_CIRCUMFERENCE / 360.0)
 
 
-    def _convert_degrees_lon_to_cm(self, delta_lon, latitude):
+    @staticmethod
+    def _convert_degrees_lon_to_cm(delta_lon, latitude):
         return delta_lon * (EARTH_CIRCUMFERENCE / 360.0) * \
                        math.cos(math.radians(latitude)) * CM_TO_KM_FACTOR
 
 
-    def _convert_degrees_lat_to_cm(self, delta_lat):
+    @staticmethod
+    def _convert_degrees_lat_to_cm(delta_lat):
         return delta_lat * (EARTH_CIRCUMFERENCE / 360.0) * CM_TO_KM_FACTOR
 
 
