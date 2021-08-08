@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd" version="1.0" creator="hikingmap">
-  <wpt lat="50.151329820687792" lon="0.202042674645782">
+  <wpt lat="50.151329820687785" lon="0.202042674645782">
     <name>0</name>
   </wpt>
   <wpt lat="50.146989598146391" lon="0.191870049938590">
@@ -72,7 +72,7 @@
   <wpt lat="50.245036272554813" lon="0.269608013609917">
     <name>7</name>
   </wpt>
-  <wpt lat="50.242978555793783" lon="0.000579608604312">
+  <wpt lat="50.242978555793790" lon="0.000579608604312">
     <name>0</name>
   </wpt>
   <wpt lat="50.242961431527547" lon="0.010886528311521">

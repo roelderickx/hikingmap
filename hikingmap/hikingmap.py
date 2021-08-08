@@ -32,7 +32,7 @@ def parse_commandline():
                         help='page overlap in cm (default: %(default)s)')
     parser.add_argument('--overview', action='store_true', dest='generate_overview', \
                         help='generate overview map')
-    parser.add_argument('-w', '--waypoints', type=int, default=1, dest='waypt_distance', \
+    parser.add_argument('-w', '--waypoints', type=float, default=1, dest='waypt_distance', \
                         help='add cumulative length each N km or mile, 0 to disable ' + \
                              '(default: %(default)s)')
     parser.add_argument('-u', '--unit', choices=[ 'km', 'mi' ], default='km', dest='length_unit', \

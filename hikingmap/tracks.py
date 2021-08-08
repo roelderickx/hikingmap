@@ -98,38 +98,25 @@ class Tracks:
                         (trackindex, track[0].to_string(), track[-1].to_string()))
 
             track_waypoints = list()
+            next_waypt_dist = 0
             cumul_distance = 0
             prev_coord = track[0]
-            for coord in track:
-                cumul_distance = self.__add_waypoints(track_waypoints, prev_coord, coord, \
-                                                      cumul_distance, waypt_distance, length_unit)
+            for coord in track[1:]:
+                # calculate cumul dist at coord
+                cumul_distance_prev_coord = cumul_distance
+                cumul_distance += prev_coord.distance_haversine(coord, length_unit)
+                # loop as long as dist < cumul dist at coord
+                while next_waypt_dist < cumul_distance:
+                    d = next_waypt_dist - cumul_distance_prev_coord
+                    waypt = prev_coord.calc_waypoint_on_line(coord, d, length_unit)
+                    track_waypoints.append((waypt, ('%.2f' % next_waypt_dist).rstrip('0').rstrip('.')))
+                    next_waypt_dist += waypt_distance
+
                 prev_coord = coord
 
             print("Total track distance: %.2f %s" % (cumul_distance, length_unit))
 
             self.waypoints.append(track_waypoints)
-
-
-    def __add_waypoints(self, track_waypoints, coord1, coord2, cumul_dist_at_coord1, \
-                        waypt_distance, length_unit):
-        '''
-        Calculates all waypoints between coord1 and coord2 and append them to track_waypoints
-        Returns cumulative distance at coord2
-        '''
-        if coord1.equals(coord2):
-            if cumul_dist_at_coord1 == 0:
-                track_waypoints.append((coord1, "0"))
-            return cumul_dist_at_coord1
-        else:
-            cumul_dist_at_coord2 = \
-                cumul_dist_at_coord1 + coord1.distance_haversine(coord2, length_unit)
-            for dist in range(int(cumul_dist_at_coord1) + 1, int(cumul_dist_at_coord2) + 1):
-                if dist % waypt_distance == 0:
-                    d = dist - cumul_dist_at_coord1
-                    waypt = coord1.calc_waypoint_on_line(coord2, d, length_unit)
-                    track_waypoints.append((waypt, str(dist)))
-
-            return cumul_dist_at_coord2
 
 
     def write_waypoints_tempfile(self):
