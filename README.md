@@ -78,5 +78,5 @@ Of course you are free to add more parameters to the renderer which can be passe
 
 Below you can find part of a rendered track. The maps were rendered on a 1:50000 scale for A4 paper size. It is included here only as an example to show how the track is rendered and how pages fit together.
 
-![Example output](https://github.com/roelderickx/hikingmap/blob/master/example-output-thumb.png)
+![Example output](https://github.com/roelderickx/hikingmap/blob/main/example-output-thumb.png)
 
