@@ -143,7 +143,7 @@ class Page(Area):
 
             if portrait_excess == 0 and landscape_excess == 0:
                 self.set_orientation(self.orientation_unknown)
-            elif portrait_excess < landscape_excess:
+            elif portrait_excess <= landscape_excess:
                 self.set_orientation(self.orientation_portrait)
                 outside_page = (portrait_excess * landscape_excess > 0)
             elif portrait_excess > landscape_excess:
