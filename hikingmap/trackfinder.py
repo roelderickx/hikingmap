@@ -209,6 +209,9 @@ class TrackFinder:
             overviewpage.add_page_to_overview(page)
 
             tracknode = etree.Element('trk')
+            tracknamenode = etree.Element('name')
+            tracknamenode.text = 'Page %d' % page.pageindex
+            tracknode.append(tracknamenode)
             tracksegnode = etree.Element('trkseg')
             for i in range(0, 5):
                 if i in [0, 3, 4]:
