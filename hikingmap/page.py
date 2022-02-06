@@ -192,13 +192,11 @@ class Page(Area):
         if self.debugmode:
             # assert valid parameters and preconditions
             # prev_coord should be inside page area
-            if not (self.minlon <= prev_coord.lon <= self.maxlon and \
-                    self.minlat <= prev_coord.lat <= self.maxlat):
+            if not self.contains_coord(prev_coord):
                 self.__raise_calc_border_error("prev_coord is not inside page area!", \
                                                prev_coord, coord)
             # coord should be outside page area
-            if self.minlon <= coord.lon <= self.maxlon and \
-               self.minlat <= coord.lat <= self.maxlat:
+            if self.contains_coord(coord):
                 self.__raise_calc_border_error("coord is not outside page area!", \
                                                prev_coord, coord)
 

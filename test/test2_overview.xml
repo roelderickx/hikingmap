@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd" version="1.0" creator="hikingmap">
   <trk>
+    <name>Page 1</name>
     <trkseg>
       <trkpt lat="46.988164031517620" lon="2.913442277128568"/>
       <trkpt lat="46.988164031517620" lon="3.044952717653547"/>
@@ -10,6 +11,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 2</name>
     <trkseg>
       <trkpt lat="46.911489763329243" lon="2.731618680100138"/>
       <trkpt lat="46.911489763329243" lon="2.920284874409729"/>
@@ -19,6 +21,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 3</name>
     <trkseg>
       <trkpt lat="46.914591661901426" lon="2.549903494479080"/>
       <trkpt lat="46.914591661901426" lon="2.738544639533679"/>
@@ -28,6 +31,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 4</name>
     <trkseg>
       <trkpt lat="46.917476789126610" lon="2.368142843349431"/>
       <trkpt lat="46.917476789126610" lon="2.556786791233048"/>
@@ -37,6 +41,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 5</name>
     <trkseg>
       <trkpt lat="46.903517595038281" lon="2.186385492392255"/>
       <trkpt lat="46.903517595038281" lon="2.374967320039533"/>
@@ -46,6 +51,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 6</name>
     <trkseg>
       <trkpt lat="46.846350345845288" lon="2.061926725228868"/>
       <trkpt lat="46.846350345845288" lon="2.193097982777902"/>
@@ -55,6 +61,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 7</name>
     <trkseg>
       <trkpt lat="46.765410697789044" lon="1.880531518386151"/>
       <trkpt lat="46.765410697789044" lon="2.068596516217196"/>
@@ -64,6 +71,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 8</name>
     <trkseg>
       <trkpt lat="46.720457764317963" lon="1.699357467077132"/>
       <trkpt lat="46.720457764317963" lon="1.887327278378212"/>
@@ -73,6 +81,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 9</name>
     <trkseg>
       <trkpt lat="46.665725811394871" lon="1.576420359337342"/>
       <trkpt lat="46.665725811394871" lon="1.707125296410797"/>
@@ -82,6 +91,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 10</name>
     <trkseg>
       <trkpt lat="46.579752264317960" lon="1.414669043442146"/>
       <trkpt lat="46.579752264317960" lon="1.602169177993452"/>
@@ -91,6 +101,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 11</name>
     <trkseg>
       <trkpt lat="46.590567264317968" lon="1.233674126574971"/>
       <trkpt lat="46.590567264317968" lon="1.421204233462253"/>
@@ -100,6 +111,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 12</name>
     <trkseg>
       <trkpt lat="46.611141764317964" lon="1.052580184438799"/>
       <trkpt lat="46.611141764317964" lon="1.240210253383403"/>
@@ -109,6 +121,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 13</name>
     <trkseg>
       <trkpt lat="46.594872367002182" lon="0.871724353540149"/>
       <trkpt lat="46.594872367002182" lon="1.059281714408361"/>
@@ -118,6 +131,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 14</name>
     <trkseg>
       <trkpt lat="46.578968809082092" lon="0.691087336713975"/>
       <trkpt lat="46.578968809082092" lon="0.878588658434423"/>
@@ -127,6 +141,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 15</name>
     <trkseg>
       <trkpt lat="46.632846672770881" lon="0.512970425325551"/>
       <trkpt lat="46.632846672770881" lon="0.700554005681471"/>
@@ -136,6 +151,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 16</name>
     <trkseg>
       <trkpt lat="46.705459989636836" lon="0.334399994708333"/>
       <trkpt lat="46.705459989636836" lon="0.522278442947541"/>
@@ -145,6 +161,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 17</name>
     <trkseg>
       <trkpt lat="46.761884732800915" lon="0.171435421665565"/>
       <trkpt lat="46.761884732800915" lon="0.359522783303802"/>
@@ -154,6 +171,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 18</name>
     <trkseg>
       <trkpt lat="46.847449649254081" lon="0.105101575094199"/>
       <trkpt lat="46.847449649254081" lon="0.236247424905801"/>
@@ -163,6 +181,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 19</name>
     <trkseg>
       <trkpt lat="46.921334762441909" lon="0.028638461982260"/>
       <trkpt lat="46.921334762441909" lon="0.217264686072339"/>
@@ -172,6 +191,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 20</name>
     <trkseg>
       <trkpt lat="46.987716005605996" lon="-0.049836831613621"/>
       <trkpt lat="46.987716005605996" lon="0.081761464747276"/>

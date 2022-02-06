@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd" version="1.0" creator="hikingmap">
   <trk>
+    <name>Page 1</name>
     <trkseg>
       <trkpt lat="50.199985003389209" lon="0.102232647052938"/>
       <trkpt lat="50.199985003389209" lon="0.242452082299655"/>
@@ -10,6 +11,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 2</name>
     <trkseg>
       <trkpt lat="50.317932127333968" lon="-0.033767282056005"/>
       <trkpt lat="50.317932127333968" lon="0.106802827703150"/>
@@ -19,6 +21,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 3</name>
     <trkseg>
       <trkpt lat="50.249267041392457" lon="0.103440547887053"/>
       <trkpt lat="50.249267041392457" lon="0.304983041250439"/>
@@ -28,6 +31,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 4</name>
     <trkseg>
       <trkpt lat="50.275332223375628" lon="0.297965164685953"/>
       <trkpt lat="50.275332223375628" lon="0.499544201162826"/>
@@ -37,6 +41,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 5</name>
     <trkseg>
       <trkpt lat="50.233254173723331" lon="0.403588079126133"/>
       <trkpt lat="50.233254173723331" lon="0.543777378615422"/>
@@ -46,6 +51,7 @@
     </trkseg>
   </trk>
   <trk>
+    <name>Page 6</name>
     <trkseg>
       <trkpt lat="50.186877580111215" lon="0.224245015129109"/>
       <trkpt lat="50.186877580111215" lon="0.425416448174393"/>

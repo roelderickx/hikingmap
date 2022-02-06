@@ -66,6 +66,10 @@ class Area:
         return self.maxlat - self.minlat
 
 
+    def contains_coord(self, coord):
+        return self.minlon <= coord.lon <= self.maxlon and self.minlat <= coord.lat <= self.maxlat
+
+
     def to_string(self):
         return Coordinate(self.minlon, self.minlat).to_string() + " - " + \
                Coordinate(self.maxlon, self.maxlat).to_string()

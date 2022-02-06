@@ -74,9 +74,10 @@ class TrackFinder:
             try:
                 for track in trackpermutation:
                     self.__pointskipped = True
-                    prev_coord = Coordinate(0.0, 0.0)
+                    prev_coord = None
                     for coord in track:
-                        prev_coord = self.__add_point(prev_coord, coord)
+                        self.__add_point(prev_coord, coord)
+                        prev_coord = coord
                     self.__flush()
             except:
                 if self.debugmode:
@@ -95,13 +96,12 @@ class TrackFinder:
     def __add_point(self, prev_coord, coord):
         if not self.__is_point_rendered(coord):
             if not self.__firstpointaccepted:
-                prev_coord = self.__add_first_point(coord)
+                self.__add_first_point(coord)
             else:
-                prev_coord = self.__add_next_point(prev_coord, coord)
+                self.__add_next_point(prev_coord, coord)
             self.__pointskipped = False
         else:
             self.__pointskipped = True
-        return prev_coord
 
 
     def __flush(self):
@@ -112,8 +112,7 @@ class TrackFinder:
 
 
     def __is_point_rendered(self, coord):
-        return any(a.minlon <= coord.lon <= a.maxlon and \
-                   a.minlat <= coord.lat <= a.maxlat for a in self.__renderedareas)
+        return any(a.contains_coord(coord) for a in self.__renderedareas)
 
 
     def __add_first_point(self, coord):
@@ -123,7 +122,23 @@ class TrackFinder:
         self.__currentpage.initialize_first_point(coord)
         self.__currentpageindex += 1
         self.__firstpointaccepted = True
-        return coord
+
+
+    def __get_closest_borderpoint(self, prev_coord, coord, include_currentpage = False):
+        border_coords = [ page_prev_coord.calc_border_point(prev_coord, coord) \
+                            for page_prev_coord in self.__renderedareas \
+                                    if page_prev_coord.contains_coord(prev_coord) and \
+                                       not page_prev_coord.contains_coord(coord) ]
+        if include_currentpage:
+            border_coords += [ self.__currentpage.calc_border_point(prev_coord, coord) ]
+
+        border_coord = None
+        for bc in border_coords:
+            if not border_coord or \
+               coord.distance_haversine(bc, 'km') < coord.distance_haversine(border_coord, 'km'):
+                border_coord = bc
+
+        return border_coord
 
 
     def __add_next_point(self, prev_coord, coord):
@@ -132,7 +147,7 @@ class TrackFinder:
         if outside_page:
             self.__currentpage.remove_last_point()
             if not self.__pointskipped:
-                border_coord = self.__currentpage.calc_border_point(prev_coord, coord)
+                border_coord = self.__get_closest_borderpoint(prev_coord, coord, True)
                 self.__currentpage.add_next_point(border_coord)
             self.__currentpage.center_map()
             self.__renderedareas.append(self.__currentpage)
@@ -140,9 +155,13 @@ class TrackFinder:
                 self.__add_first_point(border_coord)
                 self.__add_next_point(border_coord, coord)
             else:
-                self.__add_first_point(coord)
-
-        return coord
+                if prev_coord:
+                    border_coord = self.__get_closest_borderpoint(prev_coord, coord)
+                    self.__add_first_point(border_coord)
+                    self.__pointskipped = False
+                    self.__add_next_point(border_coord, coord)
+                else:
+                    self.__add_first_point(coord)
 
 
     def __debug_exception(self):
@@ -187,6 +206,9 @@ class TrackFinder:
             overviewpage.add_page_to_overview(page)
 
             tracknode = etree.Element('trk')
+            tracknamenode = etree.Element('name')
+            tracknamenode.text = 'Page %d' % page.pageindex
+            tracknode.append(tracknamenode)
             tracksegnode = etree.Element('trkseg')
             for i in range(0, 5):
                 if i in [0, 3, 4]:
