@@ -95,7 +95,7 @@ class TrackFinder:
 
     def __add_point(self, prev_coord, coord):
         if not self.__is_point_rendered(coord):
-            if not prev_coord and not self.__firstpointaccepted:
+            if not self.__firstpointaccepted:
                 self.__add_first_point(coord)
             else:
                 self.__add_next_point(prev_coord, coord)
