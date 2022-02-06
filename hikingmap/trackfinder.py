@@ -76,7 +76,8 @@ class TrackFinder:
                     self.__pointskipped = True
                     prev_coord = None
                     for coord in track:
-                        prev_coord = self.__add_point(prev_coord, coord)
+                        self.__add_point(prev_coord, coord)
+                        prev_coord = coord
                     self.__flush()
             except:
                 if self.debugmode:
@@ -95,13 +96,12 @@ class TrackFinder:
     def __add_point(self, prev_coord, coord):
         if not self.__is_point_rendered(coord):
             if not prev_coord and not self.__firstpointaccepted:
-                prev_coord = self.__add_first_point(coord)
+                self.__add_first_point(coord)
             else:
-                prev_coord = self.__add_next_point(prev_coord, coord)
+                self.__add_next_point(prev_coord, coord)
             self.__pointskipped = False
         else:
             self.__pointskipped = True
-        return prev_coord
 
 
     def __flush(self):
@@ -122,7 +122,6 @@ class TrackFinder:
         self.__currentpage.initialize_first_point(coord)
         self.__currentpageindex += 1
         self.__firstpointaccepted = True
-        return coord
 
 
     def __get_closest_borderpoint(self, prev_coord, coord, include_currentpage = False):
@@ -163,8 +162,6 @@ class TrackFinder:
                     self.__add_next_point(border_coord, coord)
                 else:
                     self.__add_first_point(coord)
-
-        return coord
 
 
     def __debug_exception(self):
