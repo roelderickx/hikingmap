@@ -17,10 +17,9 @@ usage:
     renderoptions         render options, rendercommand is required when adding
                           options
   
-  optional arguments:
+  options:
     -h, --help            show this help message and exit
-    -s SCALE, --scale SCALE
-                          scale denominator (default: 50000)
+    -s, --scale SCALE     scale denominator (default: 50000)
     --pagewidth PAGEWIDTH
                           paper width minus margin in cm (default: 20.0)
     --pageheight PAGEHEIGHT
@@ -28,16 +27,15 @@ usage:
     --pageoverlap PAGEOVERLAP
                           page overlap in cm (default: 1.0)
     --overview            generate overview map
-    -w WAYPT_DISTANCE, --waypoints WAYPT_DISTANCE
+    -w, --waypoints WAYPT_DISTANCE
                           add cumulative length each N km or mile, 0 to disable
                           (default: 1)
-    -u {km,mi}, --unit {km,mi}
-                          length unit in which the value of the waypoints
+    -u, --unit {km,mi}    length unit in which the value of the waypoints
                           parameter is expressed (default: km)
-    -o {naturalorder,rectoverso,book}, --page-order {naturalorder,rectoverso,book}
+    -o, --page-order {naturalorder,rectoverso,book}
                           order in which pages are generated (default:
                           naturalorder)
-    -b OUTPUT_BASENAME, --basename OUTPUT_BASENAME
+    -b, --basename OUTPUT_BASENAME
                           output filename, hikingmap will add the pagenumber and
                           extension (default: detail.)
     -v, --verbose         show verbose output
